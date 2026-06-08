@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Universal Unit Converter (Simple Length v1)",
+  "version": "0.1",
+  "description": "Converts length units on web pages (metric ↔ imperial) and shows the converted value inline.",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
