@@ -1,0 +1,17 @@
+{
+  "name": "universal-unit-converter",
+  "version": "1.0.0",
+  "description": "Converts any unit to a specified conversion unit",
+  "main": "content.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "vite build && vite build -c vite.content.config.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^6.4.3",
+    "vite-plugin-static-copy": "^3.4.0"
+  }
+}

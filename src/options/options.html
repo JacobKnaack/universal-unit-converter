@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Converter Options</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>
+        Unit Converter Settings
+    </h2>
+    <label for="system">Target System:</label>
+    <select id="system">
+        <option value="metric">Metric (meters, kilometers, etc.)</option>
+        <option value="imperial">Imperial (feet, miles, etc.)</option>
+    </select>
+
+    <p id="status" style="color: green; margin-top: 10px"></p>
+    <script src="assets/options.js"></script>
+</body>
+</html>

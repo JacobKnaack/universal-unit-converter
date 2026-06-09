@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Unit Converter</title>
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.55);
+      --glass-border: rgba(255, 255, 255, 0.35);
+      --text: #1f2328;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --radius: 12px;
+      --shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 14px;
+      width: 240px;
+
+      /* ⭐ Chrome allows this */
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 8px 10px;
+      margin-top: 4px;
+      border-radius: var(--radius);
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.65);
+      font-size: 0.9rem;
+      box-sizing: border-box;
+      backdrop-filter: blur(6px);
+      transition: border-color 0.15s ease;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 9px;
+      margin-top: 10px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    #status {
+      margin-top: 6px;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 500;
+      min-height: 16px;
+    }
+
+    #result {
+      margin-top: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text);
+      min-height: 20px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--glass-border);
+      margin: 14px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <label for="system">Target System:</label>
+    <select id="system">
+      <option value="imperial">Metric To Imperial</option>
+      <option value="metric">Imperial To Metric</option>
+    </select>
+
+    <div id="status"></div>
+
+    <hr>
+
+    <label for="convertInput">Quick Convert:</label>
+    <input id="convertInput" placeholder="e.g. 12 m, 5 ft, 3.5 km, 10 kg, 32 F">
+
+    <button id="convertBtn">Convert</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script src="assets/popup.js"></script>
+</body>
+</html>
