@@ -5,7 +5,7 @@ import {
   TEMPERATURE_REGEX,
   convertMass,
   MASS_REGEX
-} from "../content/converters/index.js";
+} from "@/content/converters/index.js";
 
 const systemSelect = document.getElementById("system");
 const status = document.getElementById("status");

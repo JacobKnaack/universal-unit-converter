@@ -1,14 +1,20 @@
 const TEMPERATURE_REGEX = /\b(\d+(\.\d+)?)\s*(°?\s*[CFcf]|celsius|fahrenheit)\b/g;
 
+const celcuisUnits = ["c", "°c", "celsius"];
+const fahrenheitUnits = ["f", "°f", "fahrenheit"];
+
+const celciusToFahrenheit = (c) => (c * 9/5) + 32;
+const fahrenheitToCelcius = (f) => (f - 32) * 5/9;
+
 function convertTemperature(value, unit) {
   const u = unit.toLowerCase();
 
-  if (u === "c" || u === "°c" || u === "celsius") {
-    return { value: (value * 9/5) + 32, unit: "°F" };
+  if (celcuisUnits.includes(u)) {
+    return { value: celciusToFahrenheit(value), unit: "F" };
   }
 
-  if (u === "f" || u === "°f" || u === "fahrenheit") {
-    return { value: (value - 32) * 5/9, unit: "°C" };
+  if (fahrenheitUnits.includes(u)) {
+    return { value: fahrenheitToCelcius(value), unit: "C" };
   }
 
   return null;

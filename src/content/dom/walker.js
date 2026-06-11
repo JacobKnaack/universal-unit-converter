@@ -5,7 +5,9 @@ import {
   TEMPERATURE_REGEX,
   convertMass,
   MASS_REGEX,
- } from "../converters/index.js";
+ } from "@/content/converters/index.js";
+
+const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f)\s*\)/i;
 
 function walkAndConvert(root) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -13,6 +15,11 @@ function walkAndConvert(root) {
   let node;
   while ((node = walker.nextNode())) {
     const original = node.nodeValue;
+
+    if (ALREADY_CONVERTED_REGEX.test(original)) {
+      continue; // Skip already converted text
+    }
+
     let changed = false;
     let text = original;
 
