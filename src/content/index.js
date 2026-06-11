@@ -1,15 +1,23 @@
-import { walkAndConvert } from "./dom/walker.js";
+import {
+  enableConversion,
+  disableConversion
+} from "./dom/walker.js";
 
-walkAndConvert(document.body);
+const converter = {
+  observer: null,
+  textMap: new Map(),
+}
 
-const observer = new MutationObserver(mutations => {
-  for (const m of mutations) {
-    m.addedNodes.forEach(node => {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        walkAndConvert(node);
-      }
-    });
-  }
+// Load setting and initialize behavior
+chrome.storage.sync.get(["autoConvert"], ({ autoConvert }) => {
+  if (autoConvert) enableConversion(converter);
 });
 
-observer.observe(document.body, { childList: true, subtree: true });
+// Listen for changes from popup
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.autoConvert) {
+    const enabled = changes.autoConvert.newValue;
+    if (enabled) enableConversion(converter);
+    else disableConversion(converter);
+  }
+});

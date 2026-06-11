@@ -1,4 +1,4 @@
-const MASS_REGEX = /\b(\d+(\.\d+)?)\s*(kg|kilogram|kilograms|g|gram|grams|lb|lbs|pound|pounds|oz|ounce|ounces)\b/gi;
+const MASS_REGEX = /\b(\d+(?:\.\d+)?)\s?(g|kg|lb|oz)\b/gi;
 
 function convertMass(value, unit, targetSystem) {
   const u = unit.toLowerCase();

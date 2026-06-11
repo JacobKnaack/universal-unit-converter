@@ -1,4 +1,4 @@
-const TEMPERATURE_REGEX = /\b(\d+(\.\d+)?)\s*(°?\s*[CFcf]|celsius|fahrenheit)\b/g;
+const TEMPERATURE_REGEX = /\b(\d+(?:\.\d+)?)\s?(c|f)\b/gi;
 
 const celcuisUnits = ["c", "°c", "celsius"];
 const fahrenheitUnits = ["f", "°f", "fahrenheit"];

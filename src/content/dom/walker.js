@@ -5,19 +5,58 @@ import {
   TEMPERATURE_REGEX,
   convertMass,
   MASS_REGEX,
- } from "@/content/converters/index.js";
+ } from "../converters/index.js";
 
 const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f)\s*\)/i;
+const URL_REGEX = /https?:\/\/[^\s]+/i;
 
-function walkAndConvert(root) {
+function revertAllConvertedText(textMap) {
+  for (const [node, original] of textMap.entries()) {
+    node.nodeValue = original;
+  }
+  textMap.clear();
+}
+
+function enableConversion(converter) {
+  // Run immediately
+  walkAndConvert(document.body, converter.textMap);
+
+  // Start observing
+  converter.observer = new MutationObserver(mutations => {
+    for (const m of mutations) {
+      m.addedNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          walkAndConvert(node, converter.textMap);
+        }
+      });
+    }
+  });
+
+  converter.observer.observe(document.body, { childList: true, subtree: true });
+}
+
+function disableConversion(converter) {
+  if (converter.observer) {
+    converter.observer.disconnect();
+    converter.observer = null;
+  }
+
+  revertAllConvertedText(converter.textMap);
+}
+
+function walkAndConvert(root, textMap = new Map()) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
 
   let node;
   while ((node = walker.nextNode())) {
     const original = node.nodeValue;
 
-    if (ALREADY_CONVERTED_REGEX.test(original)) {
-      continue; // Skip already converted text
+    if (ALREADY_CONVERTED_REGEX.test(original) || URL_REGEX.test(original)) {
+      continue;
+    }
+
+    if (!textMap.has(node)) {
+      textMap.set(node, original);
     }
 
     let changed = false;
@@ -25,7 +64,7 @@ function walkAndConvert(root) {
 
     // Length
     text = text.replace(LENGTH_REGEX,
-      (match, num, _, unit) => {
+      (match, num, unit) => {
         const c = convertLength(parseFloat(num), unit, "imperial");
         if (!c) return match;
         changed = true;
@@ -35,7 +74,7 @@ function walkAndConvert(root) {
 
     // Temperature
     text = text.replace(TEMPERATURE_REGEX,
-      (match, num, _, unit) => {
+      (match, num, unit) => {
         const c = convertTemperature(parseFloat(num), unit);
         if (!c) return match;
         changed = true;
@@ -45,7 +84,7 @@ function walkAndConvert(root) {
 
     // Mass
     text = text.replace(MASS_REGEX,
-      (match, num, _, unit) => {
+      (match, num, unit) => {
         const c = convertMass(parseFloat(num), unit, "imperial");
         if (!c) return match;
         changed = true;
@@ -61,4 +100,7 @@ function walkAndConvert(root) {
 
 export {
   walkAndConvert,
+  revertAllConvertedText,
+  enableConversion,
+  disableConversion
 }

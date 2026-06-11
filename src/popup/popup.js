@@ -1,10 +1,7 @@
 import {
   convertLength,
-  LENGTH_REGEX,
   convertTemperature,
-  TEMPERATURE_REGEX,
   convertMass,
-  MASS_REGEX
 } from "@/content/converters/index.js";
 
 const systemSelect = document.getElementById("system");
@@ -12,6 +9,20 @@ const status = document.getElementById("status");
 const convertInput = document.getElementById("convertInput");
 const convertBtn = document.getElementById("convertBtn");
 const result = document.getElementById("result");
+const autoConvert = document.getElementById("autoConvert");
+
+// Load saved setting
+chrome.storage.sync.get(["autoConvert"], (data) => {
+  autoConvert.checked = data.autoConvert ?? true; // default ON
+});
+
+// Save on change
+autoConvert.addEventListener("change", () => {
+  chrome.storage.sync.set({ autoConvert: autoConvert.checked }, () => {
+    status.textContent = "Saved!";
+    setTimeout(() => (status.textContent = ""), 1200);
+  });
+});
 
 // Load saved setting
 chrome.storage.sync.get(["targetSystem"], (data) => {
