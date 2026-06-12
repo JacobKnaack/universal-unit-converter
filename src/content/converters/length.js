@@ -16,7 +16,7 @@ const centiUnits = ["cm", "centimeter", "centimeters"];
 const footUnits = ["ft", "foot", "feet"];
 const inchUnits = ["in", "inch", "inches"];
 const yardUnits = ["yd", "yard", "yards"];
-const mileUnits = ["mi", "mile", "miles"];
+// const mileUnits = ["mi", "mile", "miles"];
 
 const isMetricUnit = (unit) => {
   return [...meterUnits, ...kiloUnits, ...centiUnits].includes(unit.toLowerCase());

@@ -5,6 +5,8 @@ import {
   TEMPERATURE_REGEX,
   convertMass,
   MASS_REGEX,
+  convertVolume,
+  VOLUME_REGEX,
  } from "../converters/index.js";
 
 const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f)\s*\)/i;
@@ -86,6 +88,16 @@ function walkAndConvert(root, textMap = new Map()) {
     text = text.replace(MASS_REGEX,
       (match, num, unit) => {
         const c = convertMass(parseFloat(num), unit, "imperial");
+        if (!c) return match;
+        changed = true;
+        return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
+      }
+    );
+
+    // Volume
+    text = text.replace(VOLUME_REGEX,
+      (match, num, unit) => {
+        const c = convertVolume(parseFloat(num), unit, "imperial");
         if (!c) return match;
         changed = true;
         return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
