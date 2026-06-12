@@ -9,15 +9,28 @@ const converter = {
 }
 
 // Load setting and initialize behavior
-chrome.storage.sync.get(["autoConvert"], ({ autoConvert }) => {
-  if (autoConvert) enableConversion(converter);
+chrome.storage.sync.get(["autoConvert", "unitSystem"], ({ autoConvert, unitSystem }) => {
+  if (autoConvert) enableConversion(converter, unitSystem || 'imperial');
 });
 
 // Listen for changes from popup
 chrome.storage.onChanged.addListener((changes) => {
-  if (changes.autoConvert) {
-    const enabled = changes.autoConvert.newValue;
-    if (enabled) enableConversion(converter);
-    else disableConversion(converter);
+  const autoConvertChanged = "autoConvert" in changes;
+  const systemChanged = "unitSystem" in changes;
+
+  if (!autoConvertChanged && !systemChanged) return;
+
+  const enabled = autoConvertChanged
+    ? changes.autoConvert.newValue
+    : true; // if only system changed, keep enabled
+
+  const system = systemChanged
+    ? changes.unitSystem.newValue
+    : undefined;
+
+  if (enabled) {
+    enableConversion(converter, system ?? "imperial");
+  } else {
+    disableConversion(converter);
   }
 });

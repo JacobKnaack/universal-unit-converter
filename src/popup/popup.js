@@ -11,12 +11,13 @@ const convertBtn = document.getElementById("convertBtn");
 const result = document.getElementById("result");
 const autoConvert = document.getElementById("autoConvert");
 
-// Load saved setting
-chrome.storage.sync.get(["autoConvert"], (data) => {
-  autoConvert.checked = data.autoConvert ?? true; // default ON
+// Load both settings at once
+chrome.storage.sync.get(["autoConvert", "unitSystem"], (data) => {
+  autoConvert.checked = data.autoConvert ?? true;      // default ON
+  systemSelect.value = data.unitSytem ?? "imperial"; // default imperial
 });
 
-// Save on change
+// Save autoConvert toggle
 autoConvert.addEventListener("change", () => {
   chrome.storage.sync.set({ autoConvert: autoConvert.checked }, () => {
     status.textContent = "Saved!";
@@ -24,23 +25,16 @@ autoConvert.addEventListener("change", () => {
   });
 });
 
-// Load saved setting
-chrome.storage.sync.get(["targetSystem"], (data) => {
-  if (data.targetSystem) {
-    systemSelect.value = data.targetSystem;
-  }
-});
-
-// Save on change
+// Save system selection
 systemSelect.addEventListener("change", () => {
-  chrome.storage.sync.set({ targetSystem: systemSelect.value }, () => {
+  chrome.storage.sync.set({ unitSystem: systemSelect.value }, () => {
     status.textContent = "Saved!";
     setTimeout(() => (status.textContent = ""), 1200);
   });
 });
 
 // Unified converter
-function convertAny(value, unit, targetSystem) {
+function convertAny(value, unit, unitSystem) {
   const u = unit.toLowerCase();
 
   // Temperature
@@ -50,13 +44,13 @@ function convertAny(value, unit, targetSystem) {
   }
 
   // Length
-  const l = convertLength(value, u, targetSystem);
+  const l = convertLength(value, u, unitSystem);
   if (l) {
     return `${value} ${unit} = ${l.value.toFixed(2)} ${l.unit}`;
   }
 
   // Mass
-  const m = convertMass(value, u, targetSystem);
+  const m = convertMass(value, u, unitSystem);
   if (m) {
     return `${value} ${unit} = ${m.value.toFixed(2)} ${m.unit}`;
   }
@@ -77,9 +71,9 @@ convertBtn.addEventListener("click", () => {
 
   const value = parseFloat(match[1]);
   const unit = match[3];
-  const targetSystem = systemSelect.value;
+  const unitSystem = systemSelect.value;
 
-  const output = convertAny(value, unit, targetSystem);
+  const output = convertAny(value, unit, unitSystem);
   result.textContent = output;
 });
 

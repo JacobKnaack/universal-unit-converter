@@ -11,10 +11,10 @@ const conversion = {
 
 const milliliter = ['milliliter', 'milliliters', 'millilitres', 'millilitres', 'ml', 'mils', 'mls'];
 const liter = ['liter', 'liters', 'litre', 'litres', 'l'];
-const cubic_meter = ['m3', 'm^3'];
+const cubic_meter = ['m3', 'm^3', 'm³'];
 const fluid_ounce = ['fl oz', 'fl. oz'];
 const gallon = ['gallon', 'gal'];
-const cubic_foot = ['cf', 'cu ft', 'ft3', 'cu.ft', 'cu. ft'];
+const cubic_foot = ['cf', 'cu ft', 'ft3', 'ft³', 'cu.ft', 'cu. ft'];
 
 const handleImperial = (value, unit) => {
   if (milliliter.includes(unit)) {
@@ -45,17 +45,11 @@ const handleMetric = (value, unit) => {
 function convertVolume(value, unit, system) {
   const u = unit.toLowerCase();
 
-  // Normalize ASCII fallbacks
-  const normalized = {
-    "m3": "m³",
-    "ft3": "ft³"
-  }[u] || u;
-
   if (system === 'imperial') {
-    return handleImperial(value, normalized);
+    return handleImperial(value, u);
   }
   if (system === 'metric') {
-    return handleMetric(value, normalized);
+    return handleMetric(value, u);
   }
   return null;
 }

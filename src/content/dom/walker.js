@@ -19,16 +19,16 @@ function revertAllConvertedText(textMap) {
   textMap.clear();
 }
 
-function enableConversion(converter) {
+function enableConversion(converter, unitSystem = 'imperial') {
   // Run immediately
-  walkAndConvert(document.body, converter.textMap);
+  walkAndConvert(document.body, converter.textMap, unitSystem);
 
   // Start observing
   converter.observer = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE) {
-          walkAndConvert(node, converter.textMap);
+          walkAndConvert(node, converter.textMap, unitSystem);
         }
       });
     }
@@ -46,7 +46,7 @@ function disableConversion(converter) {
   revertAllConvertedText(converter.textMap);
 }
 
-function walkAndConvert(root, textMap = new Map()) {
+function walkAndConvert(root, textMap = new Map(), systemType) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
 
   let node;
@@ -67,7 +67,7 @@ function walkAndConvert(root, textMap = new Map()) {
     // Length
     text = text.replace(LENGTH_REGEX,
       (match, num, unit) => {
-        const c = convertLength(parseFloat(num), unit, "imperial");
+        const c = convertLength(parseFloat(num), unit, systemType);
         if (!c) return match;
         changed = true;
         return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
@@ -87,7 +87,7 @@ function walkAndConvert(root, textMap = new Map()) {
     // Mass
     text = text.replace(MASS_REGEX,
       (match, num, unit) => {
-        const c = convertMass(parseFloat(num), unit, "imperial");
+        const c = convertMass(parseFloat(num), unit, systemType);
         if (!c) return match;
         changed = true;
         return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
@@ -97,7 +97,7 @@ function walkAndConvert(root, textMap = new Map()) {
     // Volume
     text = text.replace(VOLUME_REGEX,
       (match, num, unit) => {
-        const c = convertVolume(parseFloat(num), unit, "imperial");
+        const c = convertVolume(parseFloat(num), unit, systemType);
         if (!c) return match;
         changed = true;
         return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;

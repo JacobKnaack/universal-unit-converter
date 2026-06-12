@@ -15,7 +15,7 @@ describe("walkAndConvert()", () => {
   it("converts length units inside text nodes", () => {
     document.body.innerHTML = `<p>The board is 10 cm long.</p>`;
 
-    walkAndConvert(document.body);
+    walkAndConvert(document.body, undefined, 'imperial');
 
     const text = document.body.textContent;
     expect(text).toMatch(/10 cm \(\d+\.\d{2} in\)/);
@@ -24,7 +24,7 @@ describe("walkAndConvert()", () => {
   it("converts temperature units", () => {
     document.body.innerHTML = `<p>It is 30 C outside.</p>`;
 
-    walkAndConvert(document.body);
+    walkAndConvert(document.body, undefined, 'imperial');
 
     const text = document.body.textContent;
     expect(text).toMatch(/30 C \(\d+\.\d{2} F\)/);
@@ -33,7 +33,7 @@ describe("walkAndConvert()", () => {
   it("converts mass units", () => {
     document.body.innerHTML = `<p>The bag weighs 5 kg.</p>`;
 
-    walkAndConvert(document.body);
+    walkAndConvert(document.body, undefined, 'imperial');
 
     const text = document.body.textContent;
     expect(text).toMatch(/5 kg \(\d+\.\d{2} lb\)/);
@@ -42,8 +42,8 @@ describe("walkAndConvert()", () => {
   it("does not double‑convert already converted text", () => {
     document.body.innerHTML = `<p>The board is 10 cm (3.94 in).</p>`;
 
-    walkAndConvert(document.body);
-    walkAndConvert(document.body);
+    walkAndConvert(document.body, undefined, 'imperial');
+    walkAndConvert(document.body, undefined, 'imperial');
 
     const text = document.body.textContent;
 
@@ -55,7 +55,7 @@ describe("walkAndConvert()", () => {
   it("ignores text without units", () => {
     document.body.innerHTML = `<p>Hello world</p>`;
 
-    walkAndConvert(document.body);
+    walkAndConvert(document.body, undefined, 'imperial');
 
     expect(document.body.textContent).toBe("Hello world");
   });
@@ -68,7 +68,7 @@ describe("walkAndConvert()", () => {
     newNode.textContent = "The table is 2 m wide.";
     container.appendChild(newNode);
 
-    walkAndConvert(container);
+    walkAndConvert(container, undefined, 'imperial');
 
     expect(container.textContent).toMatch(/2 m \(\d+\.\d{2} ft\)/);
   });
@@ -76,7 +76,7 @@ describe("walkAndConvert()", () => {
   it("handles multiple units in the same text node", () => {
     document.body.innerHTML = `<p>10 cm and 5 kg and 20 C</p>`;
 
-    walkAndConvert(document.body);
+    walkAndConvert(document.body, undefined, 'imperial');
 
     const text = document.body.textContent;
 
@@ -92,7 +92,7 @@ describe("walkAndConvert()", () => {
         <p>foo99bar88baz77</p>
     `;
 
-    walkAndConvert(document.body);
+    walkAndConvert(document.body, undefined, 'imperial');
 
     const text = document.body.textContent;
 
@@ -112,7 +112,7 @@ describe("walkAndConvert()", () => {
       </p>
     `;
 
-    walkAndConvert(document.body);
+    walkAndConvert(document.body, undefined, 'imperial');
 
     const text = document.body.textContent.trim();
 

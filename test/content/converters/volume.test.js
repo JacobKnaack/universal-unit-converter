@@ -20,7 +20,7 @@ describe("Volume conversion", () => {
   });
 
   it("converts metric → imperial volume units", () => {
-    walkAndConvert(document.body, map);
+    walkAndConvert(document.body, map, 'imperial');
 
     const text = document.body.textContent;
 
@@ -30,7 +30,7 @@ describe("Volume conversion", () => {
   });
 
   it("converts imperial → metric volume units", () => {
-    walkAndConvert(document.body, map);
+    walkAndConvert(document.body, map, 'metric');
 
     const text = document.body.textContent;
 
@@ -40,14 +40,14 @@ describe("Volume conversion", () => {
   });
 
   it("stores original text in the map", () => {
-    walkAndConvert(document.body, map);
+    walkAndConvert(document.body, map, 'imperial');
 
     const node = document.querySelector("p").firstChild;
     expect(map.has(node)).toBe(true);
   });
 
   it("reverts converted volume text back to original", () => {
-    walkAndConvert(document.body, map);
+    walkAndConvert(document.body, map, 'imperial');
     revertAllConvertedText(map);
 
     const text = document.body.textContent;
