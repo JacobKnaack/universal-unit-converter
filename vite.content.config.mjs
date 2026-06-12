@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 
 export default defineConfig({
+  publicDir: false,
   build: {
     outDir: "dist",
     emptyOutDir: false, // CRITICAL: Do not wipe the dist folder! We want to add to it.

@@ -7,10 +7,23 @@ import {
   MASS_REGEX,
   convertVolume,
   VOLUME_REGEX,
+  VELOCITY_REGEX,
+  convertVelocity,
+  CSS_UNIT_REGEX,
+  convertCssUnits,
  } from "../converters/index.js";
 
-const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f)\s*\)/i;
+const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f|px|rem|em)\s*\)/i;
 const URL_REGEX = /https?:\/\/[^\s]+/i;
+
+const CONVERTERS = [
+  { regex: VELOCITY_REGEX, fn: convertVelocity },
+  { regex: CSS_UNIT_REGEX, fn: convertCssUnits },
+  { regex: LENGTH_REGEX, fn: convertLength },
+  { regex: TEMPERATURE_REGEX, fn: convertTemperature },
+  { regex: MASS_REGEX, fn: convertMass },
+  { regex: VOLUME_REGEX, fn: convertVolume },
+];
 
 function revertAllConvertedText(textMap) {
   for (const [node, original] of textMap.entries()) {
@@ -19,16 +32,16 @@ function revertAllConvertedText(textMap) {
   textMap.clear();
 }
 
-function enableConversion(converter, unitSystem = 'imperial') {
+function enableConversion(converter, unitSystem = 'imperial', cssUnitSystem = 'px') {
   // Run immediately
-  walkAndConvert(document.body, converter.textMap, unitSystem);
+  walkAndConvert(document.body, converter.textMap, unitSystem, cssUnitSystem);
 
   // Start observing
   converter.observer = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE) {
-          walkAndConvert(node, converter.textMap, unitSystem);
+          walkAndConvert(node, converter.textMap, unitSystem, cssUnitSystem);
         }
       });
     }
@@ -46,7 +59,7 @@ function disableConversion(converter) {
   revertAllConvertedText(converter.textMap);
 }
 
-function walkAndConvert(root, textMap = new Map(), systemType) {
+function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
 
   let node;
@@ -64,45 +77,15 @@ function walkAndConvert(root, textMap = new Map(), systemType) {
     let changed = false;
     let text = original;
 
-    // Length
-    text = text.replace(LENGTH_REGEX,
-      (match, num, unit) => {
-        const c = convertLength(parseFloat(num), unit, systemType);
+    for (const { regex, fn } of CONVERTERS) {
+      const system = fn === convertCssUnits ? cssUnitType : systemType; // this is a little brittle
+      text = text.replace(regex, (match, num, unit) => {
+        const c = fn(parseFloat(num), unit, system);
         if (!c) return match;
         changed = true;
         return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
-      }
-    );
-
-    // Temperature
-    text = text.replace(TEMPERATURE_REGEX,
-      (match, num, unit) => {
-        const c = convertTemperature(parseFloat(num), unit);
-        if (!c) return match;
-        changed = true;
-        return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
-      }
-    );
-
-    // Mass
-    text = text.replace(MASS_REGEX,
-      (match, num, unit) => {
-        const c = convertMass(parseFloat(num), unit, systemType);
-        if (!c) return match;
-        changed = true;
-        return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
-      }
-    );
-
-    // Volume
-    text = text.replace(VOLUME_REGEX,
-      (match, num, unit) => {
-        const c = convertVolume(parseFloat(num), unit, systemType);
-        if (!c) return match;
-        changed = true;
-        return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
-      }
-    );
+      });
+    }
 
     if (changed) {
       node.nodeValue = text.replace(/\/\*converted\*\//g, "");

@@ -1,4 +1,4 @@
-const LENGTH_REGEX = /\b(\d+(?:\.\d+)?)\s?(cm|mm|m|km|in|ft|yd|mi)\b/gi;
+const LENGTH_REGEX = /\b(\d+(?:\.\d+)?)\s?(cm|mm|m|km|in|ft|yd|mi)\b(?!\/[a-z])/gi;
 
 const LENGTH_UNITS = {
   m: 1, meter: 1, meters: 1,

@@ -1,4 +1,4 @@
-const VOLUME_REGEX = /\b(\d+(?:\.\d+)?)\s?(milliliters?|millilitres?|mils|mls|ml|liters?|litres?|l|m³|m3|m^3|fl oz|gallon|gal|ft³|ft3|cf|cu ft|cu\.ft|cu\. ft)\b/gi;
+const VOLUME_REGEX = /\b(\d+(?:\.\d+)?)\s?(milliliters?|millilitres?|mils|mls|ml|liters?|litres?|l|m³|m3|m\^3|fl oz|gallon|gal|ft³|ft3|cf|cu ft|cu\.ft|cu\. ft)\b(?!\/[a-z])/gi;
 
 const conversion = {
   milliliter: 0.033814, // conversion to fluid ounce
