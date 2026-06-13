@@ -100,11 +100,24 @@
       border-top: 1px solid var(--glass-border);
       margin: 14px 0;
     }
+
+    #conversion label {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    #conversion label input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+    }
   </style>
 </head>
 <body>
 
   <div class="card">
+
     <label for="system">Target System:</label>
     <select id="system">
       <option value="imperial">Display Imperial</option>
@@ -112,6 +125,40 @@
     </select>
 
     <div id="status"></div>
+
+    <section id="conversion">
+      <p>Units to Convert</p>
+  
+      <label>
+        <input type="checkbox" id="convertLength" checked>
+        <p>Length (m, cm, km, ft, in, mi)</p>
+      </label>
+  
+      <label>
+        <input type="checkbox" id="convertTemperature" checked>
+        <p>Temperature (C, F)</p>
+      </label>
+  
+      <label>
+        <input type="checkbox" id="convertMass" checked>
+        <p>Mass (g, kg, lb, oz)</p>
+      </label>
+  
+      <label>
+        <input type="checkbox" id="convertVolume" checked>
+        <p>Volume (ml, L, gal)</p>
+      </label>
+  
+      <label>
+        <input type="checkbox" id="convertVelocity" checked>
+        <p>Velocity (m/s, km/h, mph)</p>
+      </label>
+  
+      <label>
+        <input type="checkbox" id="convertCss" checked>
+        <p>CSS Units (px, rem, em, vh, vw)</p>
+      </label>
+    </section>
 
     <hr>
 

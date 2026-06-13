@@ -6,7 +6,7 @@ import {
 } from "@/content/converters/index.js";
 
 const systemSelect = document.getElementById("system");
-const cssUnitSelect = document.getElementById("cssUnitType");
+const cssUnitSelect = document.getElementById("cssUnitSystem");
 const autoConvert = document.getElementById("autoConvert");
 const status = document.getElementById("status");
 const convertInput = document.getElementById("convertInput");
