@@ -1,20 +1,73 @@
 import {
   convertLength,
   LENGTH_REGEX,
+  NORMALIZE_VOLUME_UNIT,
   convertTemperature,
   TEMPERATURE_REGEX,
+  NORMALIZE_TEMP,
   convertMass,
   MASS_REGEX,
   convertVolume,
   VOLUME_REGEX,
   VELOCITY_REGEX,
+  NORMALIZE_VELOCITY,
   convertVelocity,
   CSS_UNIT_REGEX,
   convertCssUnits,
  } from "../converters/index.js";
 
-const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f|px|rem|em)\s*\)/i;
+const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f|px|rem|em|mph|km\/h|m\/s|ft\/s)\s*\)/i;
 const URL_REGEX = /https?:\/\/[^\s]+/i;
+
+const LENGTH_TARGET_UNITS = {
+  imperial: {
+    mm: "in",
+    cm: "in",
+    m: "ft",
+    km: "mi"
+  },
+  metric: {
+    in: "cm",
+    ft: "m",
+    yd: "m",
+    mi: "km"
+  }
+};
+
+const MASS_TARGET_UNITS = {
+  imperial: { g: "oz", kg: "lb" },
+  metric: { lb: "kg", oz: "g" }
+};
+
+const VOLUME_TARGET_UNITS = {
+  imperial: {
+    ml: "fl oz",
+    l: "gal",
+    "m³": "ft³"
+  },
+  metric: {
+    "fl oz": "ml",
+    gal: "l",
+    "ft³": "m³"
+  }
+};
+
+const TEMPERATURE_TARGET_UNITS = {
+  imperial: { C: "F" },
+  metric: { F: "C" }
+};
+
+const VELOCITY_TARGET_UNITS = {
+  imperial: {
+    "m/s": "mph",
+    "km/h": "mph"
+  },
+  metric: {
+    mph: "km/h",
+    "ft/s": "m/s"
+  }
+};
+
 
 const CONVERTERS = [
   { regex: VELOCITY_REGEX, fn: convertVelocity },
@@ -33,6 +86,10 @@ function revertAllConvertedText(textMap) {
 }
 
 function enableConversion(converter, unitSystem = 'imperial', cssUnitSystem = 'px') {
+  if (converter.observer) {
+    converter.observer.disconnect();
+  }
+  converter.textMap.clear();
   // Run immediately
   walkAndConvert(document.body, converter.textMap, unitSystem, cssUnitSystem);
 
@@ -78,10 +135,74 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType) {
     let text = original;
 
     for (const { regex, fn } of CONVERTERS) {
-      const system = fn === convertCssUnits ? cssUnitType : systemType; // this is a little brittle
       text = text.replace(regex, (match, num, unit) => {
-        const c = fn(parseFloat(num), unit, system);
+        const from = unit.toLowerCase();
+        let to;
+
+        // --- CSS UNITS ---
+        if (fn === convertCssUnits) {
+          to = cssUnitType;
+          if (from === to) return match;
+        }
+
+        // --- LENGTH UNITS ---
+        else if (fn === convertLength) {
+          to = LENGTH_TARGET_UNITS[systemType]?.[from];
+          if (!to) return match;
+        }
+
+        // --- MASS UNITS ---
+        else if (fn === convertMass) {
+          to = MASS_TARGET_UNITS[systemType]?.[from];
+          if (!to) return match;
+        }
+
+        // --- VOLUME UNITS ---
+        else if (fn === convertVolume) {
+          const normalized = NORMALIZE_VOLUME_UNIT[from];
+          if (!normalized) return match;
+
+          to = VOLUME_TARGET_UNITS[systemType]?.[normalized];
+          if (!to) return match;
+
+          const c = fn(parseFloat(num), normalized, to);
+          if (!c) return match;
+
+          changed = true;
+          return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
+        }
+
+        else if (fn === convertTemperature) {
+          const normalized = NORMALIZE_TEMP[from];
+          if (!normalized) return match;
+
+          to = TEMPERATURE_TARGET_UNITS[systemType]?.[normalized];
+          if (!to) return match;
+
+          const c = fn(parseFloat(num), normalized, to);
+          if (!c) return match;
+
+          changed = true;
+          return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
+        }
+
+        else if (fn === convertVelocity) {
+          const normalized = NORMALIZE_VELOCITY[from];
+          if (!normalized) return match;
+
+          to = VELOCITY_TARGET_UNITS[systemType]?.[normalized];
+          if (!to) return match;
+
+          const c = fn(parseFloat(num), normalized, to);
+          if (!c) return match;
+
+          changed = true;
+          return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
+        }
+        // --- UNIVERSAL CONVERTER CALL ---
+        const c = fn(parseFloat(num), from, to);
         if (!c) return match;
+
         changed = true;
         return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
       });

@@ -1,58 +1,57 @@
-const VELOCITY_REGEX = /\b(\d+(?:\.\d+)?)\s?(m\/s|km\/h|ft\/s|mps|kph|mph|fps)(?![a-zA-Z])/gi;
+const VELOCITY_REGEX = /\b(\d+(?:\.\d+)?)\s?(m\/s|km\/h|ft\/s|mps|kph|mph|fps)\b(?![a-zA-Z])/gi;
 
-const meters_per_second = ['m/s', 'mps'];
-const kilometers_per_hour = ['km/h', 'kph'];
+const NORMALIZE_VELOCITY = {
+  "m/s": "m/s",
+  mps: "m/s",
 
-const miles_per_hour = ['mph'];
-const feet_per_second = ['ft/s', 'fps'];
+  "km/h": "km/h",
+  kph: "km/h",
 
-const conversion = {
-  // Metric → Imperial
-  mps_to_mph: 2.23694,
-  kmh_to_mph: 0.621371,
+  mph: "mph",
 
-  // Imperial → Metric
-  mph_to_mps: 0.44704,
-  mph_to_kmh: 1.60934,
-
-  // ft/s ↔ m/s
-  fps_to_mps: 0.3048,
-  mps_to_fps: 3.28084
+  "ft/s": "ft/s",
+  fps: "ft/s"
 };
 
-const handleImperial = (value, unit) => {
-  if (meters_per_second.includes(unit)) {
-    return { value: value * conversion.mps_to_mph, unit: 'mph' };
-  }
-  if (kilometers_per_hour.includes(unit)) {
-    return { value: value * conversion.kmh_to_mph, unit: 'mph' };
-  }
-  return null;
+const VELOCITY_TO_MPS = {
+  "m/s": 1,
+  "km/h": 1 / 3.6,
+  mph: 0.44704,
+  "ft/s": 0.3048
 };
 
-const handleMetric = (value, unit) => {
-  if (miles_per_hour.includes(unit)) {
-    return { value: value * conversion.mph_to_kmh, unit: 'km/h' };
-  }
-  if (feet_per_second.includes(unit)) {
-    return { value: value * conversion.fps_to_mps, unit: 'm/s' };
-  }
-  return null;
+const MPS_TO_UNIT = {
+  "m/s": 1,
+  "km/h": 3.6,
+  mph: 1 / 0.44704,
+  "ft/s": 1 / 0.3048
 };
 
-function convertVelocity(value, unit, system) {
-  const u = unit.toLowerCase();
+function convertVelocity(value, fromUnit, toUnit) {
+  const from = NORMALIZE_VELOCITY[fromUnit.toLowerCase()];
+  const to = NORMALIZE_VELOCITY[toUnit.toLowerCase()];
 
-  if (system === 'imperial') {
-    return handleImperial(value, u);
+  if (!from || !to) return null;
+
+  // Identity conversion
+  if (from === to) {
+    return { value, unit: to };
   }
-  if (system === 'metric') {
-    return handleMetric(value, u);
-  }
-  return null;
+
+  // Step 1: convert FROM → m/s
+  const mps = value * VELOCITY_TO_MPS[from];
+
+  // Step 2: convert m/s → TO
+  const converted = mps * MPS_TO_UNIT[to];
+
+  return {
+    value: converted,
+    unit: to
+  };
 }
 
 export {
-    convertVelocity,
-    VELOCITY_REGEX,
-}
+  convertVelocity,
+  NORMALIZE_VELOCITY,
+  VELOCITY_REGEX
+};

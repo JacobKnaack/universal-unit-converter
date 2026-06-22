@@ -17,27 +17,24 @@ chrome.storage.sync.get(['autoConvert', 'unitSystem', 'cssUnitSystem'], ({ autoC
 
 // Listen for changes from popup
 chrome.storage.onChanged.addListener((changes) => {
-  const autoConvertChanged = 'autoConvert' in changes;
-  const systemChanged = 'unitSystem' in changes;
-  const cssChanged = 'cssUnitSystem' in changes;
+  const autoConvertChanged = "autoConvert" in changes;
+  const systemChanged = "unitSystem" in changes;
+  const cssChanged = "cssUnitSystem" in changes;
 
   if (!autoConvertChanged && !systemChanged && !cssChanged) return;
 
   const enabled = autoConvertChanged
     ? changes.autoConvert.newValue
-    : true; // if only system changed, keep enabled
+    : true;
 
-  const system = systemChanged
-    ? changes.unitSystem.newValue
-    : undefined;
+  chrome.storage.sync.get(["unitSystem", "cssUnitSystem"], (data) => {
+    const system = data.unitSystem ?? "imperial";
+    const cssUnitSystem = data.cssUnitSystem ?? "px";
 
-  const cssUnitSystem = cssChanged
-    ? changes.cssUnitSystem.newValue
-    : undefined;
-
-  if (enabled) {
-    enableConversion(converter, system ?? 'imperial', cssUnitSystem || 'px');
-  } else {
-    disableConversion(converter);
-  }
+    if (enabled) {
+      enableConversion(converter, system, cssUnitSystem);
+    } else {
+      disableConversion(converter);
+    }
+  });
 });

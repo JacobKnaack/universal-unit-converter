@@ -1,20 +1,40 @@
-const TEMPERATURE_REGEX = /\b(\d+(?:\.\d+)?)\s?(c|f)\b(?!\/[a-z])/gi;
+const TEMPERATURE_REGEX = /\b(\d+(?:\.\d+)?)\s?(c|f|°c|°f|celsius|fahrenheit)\b(?!\/[a-z])/gi;
 
-const celcuisUnits = ["c", "°c", "celsius"];
-const fahrenheitUnits = ["f", "°f", "fahrenheit"];
+const NORMALIZE_TEMP = {
+  c: "C",
+  "°c": "C",
+  celsius: "C",
 
-const celciusToFahrenheit = (c) => (c * 9/5) + 32;
-const fahrenheitToCelcius = (f) => (f - 32) * 5/9;
+  f: "F",
+  "°f": "F",
+  fahrenheit: "F"
+};
 
-function convertTemperature(value, unit) {
-  const u = unit.toLowerCase();
+function convertTemperature(value, fromUnit, toUnit) {
+  const from = NORMALIZE_TEMP[fromUnit.toLowerCase()];
+  const to = NORMALIZE_TEMP[toUnit.toLowerCase()];
 
-  if (celcuisUnits.includes(u)) {
-    return { value: celciusToFahrenheit(value), unit: "F" };
+  if (!from || !to) return null;
+
+  // Identity conversion
+  if (from === to) {
+    return { value, unit: to };
   }
 
-  if (fahrenheitUnits.includes(u)) {
-    return { value: fahrenheitToCelcius(value), unit: "C" };
+  // C → F
+  if (from === "C" && to === "F") {
+    return {
+      value: (value * 9) / 5 + 32,
+      unit: "F"
+    };
+  }
+
+  // F → C
+  if (from === "F" && to === "C") {
+    return {
+      value: ((value - 32) * 5) / 9,
+      unit: "C"
+    };
   }
 
   return null;
@@ -22,5 +42,6 @@ function convertTemperature(value, unit) {
 
 export {
   convertTemperature,
-  TEMPERATURE_REGEX,
-}
+  NORMALIZE_TEMP,
+  TEMPERATURE_REGEX
+};

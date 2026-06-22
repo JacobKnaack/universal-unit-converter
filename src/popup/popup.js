@@ -2,18 +2,33 @@ import {
   convertLength,
   convertTemperature,
   convertMass,
-  convertCssUnits
+  convertCssUnits,
+  convertVolume,
+  convertVelocity
 } from "@/content/converters/index.js";
 
+/* -----------------------------
+   ELEMENT REFERENCES
+----------------------------- */
+
+// Auto-conversion settings
 const systemSelect = document.getElementById("system");
 const cssUnitSelect = document.getElementById("cssUnitSystem");
 const autoConvert = document.getElementById("autoConvert");
 const status = document.getElementById("status");
-const convertInput = document.getElementById("convertInput");
-const convertBtn = document.getElementById("convertBtn");
+
+// Manual conversion elements
+const manualCategory = document.getElementById("manualCategory");
+const manualFrom = document.getElementById("manualFrom");
+const manualTo = document.getElementById("manualTo");
+const manualValue = document.getElementById("manualValue");
+const manualConvertBtn = document.getElementById("manualConvertBtn");
 const result = document.getElementById("result");
 
-// Load all settings at once
+/* -----------------------------
+   SETTINGS LOADING
+----------------------------- */
+
 chrome.storage.sync.get(
   ["autoConvert", "unitSystem", "cssUnitSystem"],
   (data) => {
@@ -23,67 +38,122 @@ chrome.storage.sync.get(
   }
 );
 
-// Save autoConvert
+/* -----------------------------
+   SETTINGS SAVING
+----------------------------- */
+
 autoConvert.addEventListener("change", () => {
   chrome.storage.sync.set({ autoConvert: autoConvert.checked }, showSaved);
 });
 
-// Save metric/imperial system
 systemSelect.addEventListener("change", () => {
   chrome.storage.sync.set({ unitSystem: systemSelect.value }, showSaved);
 });
 
-// Save CSS unit system (px or rem)
 cssUnitSelect.addEventListener("change", () => {
   chrome.storage.sync.set({ cssUnitSystem: cssUnitSelect.value }, showSaved);
 });
 
-// Small helper for UI feedback
 function showSaved() {
   status.textContent = "Saved!";
   setTimeout(() => (status.textContent = ""), 1200);
 }
 
-// Unified converter
-function convertAny(value, unit, unitSystem, cssUnitSystem) {
-  const u = unit.toLowerCase();
+/* -----------------------------
+   UNIT MAPS FOR MANUAL MODE
+----------------------------- */
 
-  // Temperature
-  const t = convertTemperature(value, u);
-  if (t) return `${value} ${unit} = ${t.value.toFixed(2)} ${t.unit}`;
+const UNIT_MAP = {
+  length: ["m", "cm", "km", "ft", "in", "mi"],
+  temperature: ["C", "F"],
+  mass: ["g", "kg", "lb", "oz"],
+  volume: ["ml", "l", "m³", "fl oz", "gal", "ft³"],
+  velocity: ["m/s", "km/h", "mph", "ft/s"],
+  css: ["px", "rem", "em", "vh", "vw"]
+};
 
-  // Length
-  const l = convertLength(value, u, unitSystem);
-  if (l) return `${value} ${unit} = ${l.value.toFixed(2)} ${l.unit}`;
+/* -----------------------------
+   POPULATE FROM/TO DROPDOWNS
+----------------------------- */
 
-  // Mass
-  const m = convertMass(value, u, unitSystem);
-  if (m) return `${value} ${unit} = ${m.value.toFixed(2)} ${m.unit}`;
+function populateUnitDropdowns(category) {
+  const units = UNIT_MAP[category];
 
-  // CSS Units (px, rem, em, vh, vw)
-  const c = convertCssUnits(value, u, cssUnitSystem);
-  if (c) return `${value} ${unit} = ${c.value.toFixed(2)} ${c.unit}`;
+  manualFrom.innerHTML = "";
+  manualTo.innerHTML = "";
 
-  return "Unsupported unit.";
+  units.forEach((u) => {
+    const opt1 = document.createElement("option");
+    opt1.value = u;
+    opt1.textContent = u;
+
+    const opt2 = document.createElement("option");
+    opt2.value = u;
+    opt2.textContent = u;
+
+    manualFrom.appendChild(opt1);
+    manualTo.appendChild(opt2);
+  });
+
+  // Default: from first unit → to second unit
+  if (units.length > 1) {
+    manualTo.value = units[1];
+  }
 }
 
-// Handle Convert button
-convertBtn.addEventListener("click", () => {
-  const input = convertInput.value.trim();
+// Initialize dropdowns on load
+populateUnitDropdowns(manualCategory.value);
 
-  // Match: number + unit (letters or °)
-  const match = input.match(/(\d+(\.\d+)?)\s*([a-zA-Z°]+)/);
+// Update when category changes
+manualCategory.addEventListener("change", () => {
+  populateUnitDropdowns(manualCategory.value);
+});
 
-  if (!match) {
-    result.textContent = "Invalid format. Try: 12 m, 32 F, 10 kg, 16px";
+/* -----------------------------
+   MANUAL CONVERSION LOGIC
+----------------------------- */
+
+function convertManual(category, value, fromUnit, toUnit) {
+  const v = parseFloat(value);
+  if (isNaN(v)) return "Invalid number.";
+
+  switch (category) {
+    case "length":
+      return convertLength(v, fromUnit, toUnit);
+
+    case "temperature":
+      return convertTemperature(v, fromUnit, toUnit);
+
+    case "mass":
+      return convertMass(v, fromUnit, toUnit);
+
+    case "volume":
+      return convertVolume(v, fromUnit, toUnit);
+
+    case "velocity":
+      return convertVelocity(v, fromUnit, toUnit);
+
+    case "css":
+      return convertCssUnits(v, fromUnit, toUnit);
+
+    default:
+      return "Unsupported category.";
+  }
+}
+
+manualConvertBtn.addEventListener("click", () => {
+  const category = manualCategory.value;
+  const fromUnit = manualFrom.value;
+  const toUnit = manualTo.value;
+  const value = manualValue.value.trim();
+
+  const output = convertManual(category, value, fromUnit, toUnit);
+
+  if (!output) {
+    result.textContent = "Conversion not supported.";
     return;
   }
 
-  const value = parseFloat(match[1]);
-  const unit = match[3];
-  const unitSystem = systemSelect.value;
-  const cssUnitSystem = cssUnitSelect.value;
-
-  const output = convertAny(value, unit, unitSystem, cssUnitSystem);
-  result.textContent = output;
+  // All converter functions return { value, unit }
+  result.textContent = `${value} ${fromUnit} = ${output.value.toFixed(4)} ${output.unit}`;
 });

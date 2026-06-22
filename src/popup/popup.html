@@ -16,9 +16,7 @@
     body {
       font-family: system-ui, sans-serif;
       padding: 14px;
-      width: 240px;
-
-      /* ⭐ Chrome allows this */
+      width: 260px;
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -30,6 +28,14 @@
       border-radius: var(--radius);
       padding: 16px;
       box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      margin: 0 0 10px 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
     }
 
     label {
@@ -79,12 +85,16 @@
       transform: scale(0.98);
     }
 
-    #status {
-      margin-top: 6px;
-      color: var(--accent);
-      font-size: 0.85rem;
-      font-weight: 500;
-      min-height: 16px;
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+    }
+
+    .checkbox-row input {
+      width: 18px;
+      height: 18px;
     }
 
     #result {
@@ -94,29 +104,14 @@
       color: var(--text);
       min-height: 20px;
     }
-
-    hr {
-      border: none;
-      border-top: 1px solid var(--glass-border);
-      margin: 14px 0;
-    }
-
-    #conversion label {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-    }
-
-    #conversion label input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-    }
   </style>
 </head>
+
 <body>
 
+  <!-- SECTION 1: AUTO CONVERSION SETTINGS -->
   <div class="card">
+    <h2>Automatic Conversion</h2>
 
     <label for="system">Target System:</label>
     <select id="system">
@@ -124,60 +119,74 @@
       <option value="metric">Display Metric</option>
     </select>
 
-    <div id="status"></div>
+    <div style="margin-top: 10px; font-weight: 600;">Units to Convert:</div>
 
-    <section id="conversion">
-      <p>Units to Convert</p>
-  
-      <label>
-        <input type="checkbox" id="convertLength" checked>
-        <p>Length (m, cm, km, ft, in, mi)</p>
-      </label>
-  
-      <label>
-        <input type="checkbox" id="convertTemperature" checked>
-        <p>Temperature (C, F)</p>
-      </label>
-  
-      <label>
-        <input type="checkbox" id="convertMass" checked>
-        <p>Mass (g, kg, lb, oz)</p>
-      </label>
-  
-      <label>
-        <input type="checkbox" id="convertVolume" checked>
-        <p>Volume (ml, L, gal)</p>
-      </label>
-  
-      <label>
-        <input type="checkbox" id="convertVelocity" checked>
-        <p>Velocity (m/s, km/h, mph)</p>
-      </label>
-  
-      <label>
-        <input type="checkbox" id="convertCss" checked>
-        <p>CSS Units (px, rem, em, vh, vw)</p>
-      </label>
-    </section>
+    <div class="checkbox-row">
+      <input type="checkbox" id="convertLength" checked>
+      <span>Length</span>
+    </div>
 
-    <hr>
+    <div class="checkbox-row">
+      <input type="checkbox" id="convertTemperature" checked>
+      <span>Temperature</span>
+    </div>
 
-    <label>
+    <div class="checkbox-row">
+      <input type="checkbox" id="convertMass" checked>
+      <span>Mass</span>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="convertVolume" checked>
+      <span>Volume</span>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="convertVelocity" checked>
+      <span>Velocity</span>
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="convertCss" checked>
+      <span>CSS Units</span>
+    </div>
+
+    <div class="checkbox-row" style="margin-top: 10px;">
       <input type="checkbox" id="autoConvert">
-      Enable Automatic Unit Conversion
-    </label>
+      <span>Enable Automatic Conversion</span>
+    </div>
 
     <label for="cssUnitSystem">CSS Units:</label>
     <select id="cssUnitSystem">
       <option value="px">Convert to px</option>
       <option value="rem">Convert to rem</option>
     </select>
+  </div>
 
+  <!-- SECTION 2: MANUAL CONVERSION TOOL -->
+  <div class="card">
+    <h2>Manual Conversion</h2>
 
-    <label for="convertInput">Quick Convert:</label>
-    <input id="convertInput" placeholder="e.g. 12 m, 5 ft, 3.5 km, 10 kg, 32 F">
+    <label for="manualCategory">Category:</label>
+    <select id="manualCategory">
+      <option value="length">Length</option>
+      <option value="temperature">Temperature</option>
+      <option value="mass">Mass</option>
+      <option value="volume">Volume</option>
+      <option value="velocity">Velocity</option>
+      <option value="css">CSS Units</option>
+    </select>
 
-    <button id="convertBtn">Convert</button>
+    <label for="manualFrom">From Unit:</label>
+    <select id="manualFrom"></select>
+
+    <label for="manualTo">To Unit:</label>
+    <select id="manualTo"></select>
+
+    <label for="manualValue">Value:</label>
+    <input id="manualValue" placeholder="Enter a number">
+
+    <button id="manualConvertBtn">Convert</button>
 
     <div id="result"></div>
   </div>

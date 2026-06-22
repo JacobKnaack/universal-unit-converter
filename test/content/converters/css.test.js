@@ -29,10 +29,10 @@ describe("CSS unit converter", () => {
   it("does not match inside URLs or composite units", () => {
     const badSamples = [
       "https://example.com/16px/image",
-      "10 m/s",     // should not match "m"
-      "50 ft/s",    // should not match "ft"
-      "m3",         // should not match "m"
-      "16px/s"      // should not match "px"
+      "10 m/s",
+      "50 ft/s",
+      "m3",
+      "16px/s"
     ];
 
     for (const s of badSamples) {
@@ -40,6 +40,10 @@ describe("CSS unit converter", () => {
       expect(CSS_UNIT_REGEX.test(s)).toBe(false);
     }
   });
+
+  /* -----------------------------
+     BASIC PX ↔ REM/EM
+  ----------------------------- */
 
   it("converts px → rem", () => {
     const out = convertCssUnits(16, "px", "rem");
@@ -65,23 +69,99 @@ describe("CSS unit converter", () => {
     expect(out.unit).toBe("px");
   });
 
+  /* -----------------------------
+     REM ↔ EM (same math)
+  ----------------------------- */
+
+  it("converts rem → em", () => {
+    const out = convertCssUnits(2, "rem", "em");
+    expect(out.value).toBeCloseTo(2);
+    expect(out.unit).toBe("em");
+  });
+
+  it("converts em → rem", () => {
+    const out = convertCssUnits(3, "em", "rem");
+    expect(out.value).toBeCloseTo(3);
+    expect(out.unit).toBe("rem");
+  });
+
+  /* -----------------------------
+     VIEWPORT → PX
+  ----------------------------- */
+
   it("converts vh → px using viewport height", () => {
-    // Mock viewport height
-    Object.defineProperty(window, "innerHeight", { value: 1000 });
+    Object.defineProperty(window, "innerHeight", { value: 1000, configurable: true });
 
     const out = convertCssUnits(10, "vh", "px");
-    expect(out.value).toBe(100); // 10% of 1000
+    expect(out.value).toBe(100);
     expect(out.unit).toBe("px");
   });
 
   it("converts vw → px using viewport width", () => {
-    // Mock viewport width
-    Object.defineProperty(window, "innerWidth", { value: 1200 });
+    Object.defineProperty(window, "innerWidth", { value: 1200, configurable: true });
 
     const out = convertCssUnits(25, "vw", "px");
-    expect(out.value).toBe(300); // 25% of 1200
+    expect(out.value).toBe(300);
     expect(out.unit).toBe("px");
   });
+
+  /* -----------------------------
+     PX → VIEWPORT
+  ----------------------------- */
+
+  it("converts px → vh", () => {
+    Object.defineProperty(window, "innerHeight", { value: 1000, configurable: true });
+
+    const out = convertCssUnits(200, "px", "vh");
+    expect(out.value).toBeCloseTo(20);
+    expect(out.unit).toBe("vh");
+  });
+
+  it("converts px → vw", () => {
+    Object.defineProperty(window, "innerWidth", { value: 800, configurable: true });
+
+    const out = convertCssUnits(80, "px", "vw");
+    expect(out.value).toBeCloseTo(10);
+    expect(out.unit).toBe("vw");
+  });
+
+  /* -----------------------------
+     VIEWPORT ↔ VIEWPORT
+  ----------------------------- */
+
+  it("converts vh → vw", () => {
+    Object.defineProperty(window, "innerHeight", { value: 1000, configurable: true });
+    Object.defineProperty(window, "innerWidth", { value: 500, configurable: true });
+
+    // 10vh = 100px → 100px = 20vw
+    const out = convertCssUnits(10, "vh", "vw");
+    expect(out.value).toBeCloseTo(20);
+    expect(out.unit).toBe("vw");
+  });
+
+  it("converts vw → vh", () => {
+    Object.defineProperty(window, "innerHeight", { value: 900, configurable: true });
+    Object.defineProperty(window, "innerWidth", { value: 450, configurable: true });
+
+    // 10vw = 45px → 45px = 5vh
+    const out = convertCssUnits(10, "vw", "vh");
+    expect(out.value).toBeCloseTo(5);
+    expect(out.unit).toBe("vh");
+  });
+
+  /* -----------------------------
+     IDENTITY CONVERSION
+  ----------------------------- */
+
+  it("returns same value/unit when fromUnit === toUnit", () => {
+    const out = convertCssUnits(12, "px", "px");
+    expect(out.value).toBe(12);
+    expect(out.unit).toBe("px");
+  });
+
+  /* -----------------------------
+     UNSUPPORTED
+  ----------------------------- */
 
   it("returns null for unsupported units", () => {
     const out = convertCssUnits(10, "foobar", "px");

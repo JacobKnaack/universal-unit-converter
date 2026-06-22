@@ -1,31 +1,59 @@
 const CSS_UNIT_REGEX = /\b(\d+(?:\.\d+)?)\s?(px|rem|em|vh|vw)\b(?!\/[a-z])/gi;
 
-function convertCssUnits(value, unit, type) {
-  const u = unit.toLowerCase();
+function convertCssUnits(value, fromUnit, toUnit) {
+  const from = fromUnit.toLowerCase();
+  const to = toUnit.toLowerCase();
+
+  if (from === to) {
+    return { value, unit: to };
+  }
 
   const basePx = 16; // configurable later
 
-  switch (u) {
+  // Step 1: Convert FROM → px
+  let valueInPx;
+
+  switch (from) {
     case "px":
-      if (type === "rem") return { value: value / basePx, unit: "rem" };
-      if (type === "em") return { value: value / basePx, unit: "em" };
-      return null;
+      valueInPx = value;
+      break;
 
     case "rem":
     case "em":
-      if (type === "px") return { value: value * basePx, unit: "px" };
+      valueInPx = value * basePx;
+      break;
+
+    case "vh":
+      valueInPx = (window.innerHeight * value) / 100;
+      break;
+
+    case "vw":
+      valueInPx = (window.innerWidth * value) / 100;
+      break;
+
+    default:
       return null;
+  }
+
+  // Step 2: Convert px → TO
+  switch (to) {
+    case "px":
+      return { value: valueInPx, unit: "px" };
+
+    case "rem":
+    case "em":
+      return { value: valueInPx / basePx, unit: to };
 
     case "vh":
       return {
-        value: (window.innerHeight * value) / 100,
-        unit: "px"
+        value: (valueInPx / window.innerHeight) * 100,
+        unit: "vh"
       };
 
     case "vw":
       return {
-        value: (window.innerWidth * value) / 100,
-        unit: "px"
+        value: (valueInPx / window.innerWidth) * 100,
+        unit: "vw"
       };
 
     default:
@@ -36,4 +64,4 @@ function convertCssUnits(value, unit, type) {
 export {
   CSS_UNIT_REGEX,
   convertCssUnits,
-}
+};

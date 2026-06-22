@@ -1,60 +1,81 @@
 const VOLUME_REGEX = /\b(\d+(?:\.\d+)?)\s?(milliliters?|millilitres?|mils|mls|ml|liters?|litres?|l|m³|m3|m\^3|fl oz|gallon|gal|ft³|ft3|cf|cu ft|cu\.ft|cu\. ft)\b(?!\/[a-z])/gi;
 
-const conversion = {
-  milliliter: 0.033814, // conversion to fluid ounce
-  liter: 0.264172, // conversion to gallon
-  cubic_meter: 35.3147, // conversion to cubic foot
-  fluid_ounce: 29.5735, // conversion to millileter
-  gallon: 3.78541, // conversion to liter
-  cubic_foot: 0.0283168 // conversion to cubic meter
-}
+// Normalize all unit spellings to canonical forms
+const NORMALIZE_VOLUME_UNIT = {
+  milliliter: "ml",
+  milliliters: "ml",
+  millilitres: "ml",
+  mils: "ml",
+  mls: "ml",
+  ml: "ml",
+  liter: "l",
+  liters: "l",
+  litre: "l",
+  litres: "l",
+  l: "l",
+  "m³": "m³",
+  m3: "m³",
+  "m^3": "m³",
+  "fl oz": "fl oz",
+  "fl. oz": "fl oz",
+  gallon: "gal",
+  gal: "gal",
+  "ft³": "ft³",
+  ft3: "ft³",
+  cf: "ft³",
+  "cu ft": "ft³",
+  "cu.ft": "ft³",
+  "cu. ft": "ft³"
+};
 
-const milliliter = ['milliliter', 'milliliters', 'millilitres', 'millilitres', 'ml', 'mils', 'mls'];
-const liter = ['liter', 'liters', 'litre', 'litres', 'l'];
-const cubic_meter = ['m3', 'm^3', 'm³'];
-const fluid_ounce = ['fl oz', 'fl. oz'];
-const gallon = ['gallon', 'gal'];
-const cubic_foot = ['cf', 'cu ft', 'ft3', 'ft³', 'cu.ft', 'cu. ft'];
+// Convert everything → cubic meters
+const VOLUME_TO_M3 = {
+  ml: 0.000001,
+  l: 0.001,
+  "m³": 1,
 
-const handleImperial = (value, unit) => {
-  if (milliliter.includes(unit)) {
-    return { value: value * conversion.milliliter, unit: 'fl oz'};
-  }
-  if (liter.includes(unit)) {
-    return { value: value * conversion.liter, unit: 'gal' };
-  }
-  if (cubic_meter.includes(unit)) {
-    return { value: value* conversion.cubic_meter, unit: 'ft³' };
-  }
-  return null;
-}
+  "fl oz": 2.95735e-5,
+  gal: 0.00378541,
+  "ft³": 0.0283168
+};
 
-const handleMetric = (value, unit) => {
-  if (fluid_ounce.includes(unit)) {
-    return { value: value * conversion.fluid_ounce, unit: 'ml'};
-  }
-  if (gallon.includes(unit)) {
-    return { value: value * conversion.gallon, unit: 'l'}
-  }
-  if (cubic_foot.includes(unit)) {
-    return { value: value * conversion.cubic_foot, unit: 'm³' };
-  }
-  return null;
-}
+// Convert cubic meters → target unit
+const M3_TO_UNIT = {
+  ml: 1_000_000,
+  l: 1000,
+  "m³": 1,
 
-function convertVolume(value, unit, system) {
-  const u = unit.toLowerCase();
+  "fl oz": 1 / 2.95735e-5,
+  gal: 1 / 0.00378541,
+  "ft³": 1 / 0.0283168
+};
 
-  if (system === 'imperial') {
-    return handleImperial(value, u);
+function convertVolume(value, fromUnit, toUnit) {
+  const from = NORMALIZE_VOLUME_UNIT[fromUnit.toLowerCase()];
+  const to = NORMALIZE_VOLUME_UNIT[toUnit.toLowerCase()];
+
+  if (!from || !to) return null;
+  if (!VOLUME_TO_M3[from] || !M3_TO_UNIT[to]) return null;
+
+  // Identity conversion
+  if (from === to) {
+    return { value, unit: to };
   }
-  if (system === 'metric') {
-    return handleMetric(value, u);
-  }
-  return null;
+
+  // Step 1: convert FROM → m³
+  const m3 = value * VOLUME_TO_M3[from];
+
+  // Step 2: convert m³ → TO
+  const converted = m3 * M3_TO_UNIT[to];
+
+  return {
+    value: converted,
+    unit: to
+  };
 }
 
 export {
   convertVolume,
+  NORMALIZE_VOLUME_UNIT,
   VOLUME_REGEX
-}
+};
