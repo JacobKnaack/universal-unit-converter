@@ -1,4 +1,4 @@
-const LENGTH_REGEX = /\b(\d+(?:\.\d+)?)\s?(cm|mm|m|km|in|ft|yd|mi)\b(?!\/[a-z])/gi;
+const LENGTH_REGEX = /\b(\d+(?:\.\d+)?)\s*(cm|mm|m|km|in|ft|yd|mi)(?![A-Za-z0-9²/])\b/gi;
 
 // Base conversion map: all units → meters
 const LENGTH_TO_METERS = {
@@ -6,7 +6,6 @@ const LENGTH_TO_METERS = {
   cm: 0.01,
   m: 1,
   km: 1000,
-
   in: 0.0254,
   ft: 0.3048,
   yd: 0.9144,

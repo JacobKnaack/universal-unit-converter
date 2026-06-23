@@ -3,6 +3,8 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
+const ENV = process.env.NODE_ENV;
+
 export default defineConfig({
   publicDir: false,
   resolve: {
@@ -17,7 +19,7 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    emptyOutDir: true,
+    emptyOutDir: ENV === 'dev' ? false : true,
     rollupOptions: {
       input: {
         popup: resolve(__dirname, "src/popup/popup.js"),

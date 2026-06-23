@@ -3,12 +3,9 @@ const VELOCITY_REGEX = /\b(\d+(?:\.\d+)?)\s?(m\/s|km\/h|ft\/s|mps|kph|mph|fps)\b
 const NORMALIZE_VELOCITY = {
   "m/s": "m/s",
   mps: "m/s",
-
   "km/h": "km/h",
   kph: "km/h",
-
   mph: "mph",
-
   "ft/s": "ft/s",
   fps: "ft/s"
 };

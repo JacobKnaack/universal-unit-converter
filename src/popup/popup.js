@@ -17,6 +17,29 @@ const cssUnitSelect = document.getElementById("cssUnitSystem");
 const autoConvert = document.getElementById("autoConvert");
 const status = document.getElementById("status");
 
+const categoryCheckboxes = {
+  convertLength: document.getElementById("convertLength"),
+  convertMass: document.getElementById("convertMass"),
+  convertVolume: document.getElementById("convertVolume"),
+  convertVelocity: document.getElementById("convertVelocity"),
+  convertTemperature: document.getElementById("convertTemperature"),
+  convertCss: document.getElementById("convertCss"),
+}
+
+// Adds eventlistener to save settings after each click
+Object.keys(categoryCheckboxes).forEach((key) => {
+  const el = categoryCheckboxes[key];
+  el.addEventListener("change", () => {
+    const enabledCategories = Object.fromEntries(
+      Object.keys(categoryCheckboxes).map((k) => [
+        k,
+        categoryCheckboxes[k].checked,
+      ])
+    );
+    chrome.storage.sync.set({ enabledCategories }, showSaved);
+  });
+});
+
 // Manual conversion elements
 const manualCategory = document.getElementById("manualCategory");
 const manualFrom = document.getElementById("manualFrom");
@@ -30,11 +53,36 @@ const result = document.getElementById("result");
 ----------------------------- */
 
 chrome.storage.sync.get(
-  ["autoConvert", "unitSystem", "cssUnitSystem"],
+  ["autoConvert", "unitSystem", "cssUnitSystem", "enabledCategories"],
   (data) => {
-    autoConvert.checked = data.autoConvert ?? true;
+    autoConvert.checked = data.autoConvert ?? false;
     systemSelect.value = data.unitSystem ?? "imperial";
     cssUnitSelect.value = data.cssUnitSystem ?? "px";
+
+    const cats = data.enabledCategories ?? {
+      convertLength: true,
+      convertMass: true,
+      convertVolume: true,
+      convertVelocity: true,
+      convertTemperature: true,
+      convertCss: true
+    };
+
+    const {
+      convertLength: lengthBox,
+      convertMass: massBox,
+      convertVolume: volumeBox,
+      convertVelocity: velocityBox,
+      convertTemperature: tempBox,
+      convertCss: cssBox
+    } = categoryCheckboxes;
+
+    lengthBox.checked = cats.convertLength;
+    massBox.checked = cats.convertMass;
+    volumeBox.checked = cats.convertVolume;
+    velocityBox.checked = cats.convertVelocity;
+    tempBox.checked = cats.convertTemperature;
+    cssBox.checked = cats.convertCss;
   }
 );
 
@@ -54,9 +102,17 @@ cssUnitSelect.addEventListener("change", () => {
   chrome.storage.sync.set({ cssUnitSystem: cssUnitSelect.value }, showSaved);
 });
 
+let tid = null;
 function showSaved() {
-  status.textContent = "Saved!";
-  setTimeout(() => (status.textContent = ""), 1200);
+  if (status) {
+    status.textContent = "Saved!";
+    if (tid === null) {
+      tid = setTimeout(() => {
+        status.textContent = "";
+        tid = null;
+      }, 1200);
+    }
+  }
 }
 
 /* -----------------------------

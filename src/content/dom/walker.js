@@ -70,13 +70,22 @@ const VELOCITY_TARGET_UNITS = {
 
 
 const CONVERTERS = [
-  { regex: VELOCITY_REGEX, fn: convertVelocity },
-  { regex: CSS_UNIT_REGEX, fn: convertCssUnits },
-  { regex: LENGTH_REGEX, fn: convertLength },
-  { regex: TEMPERATURE_REGEX, fn: convertTemperature },
-  { regex: MASS_REGEX, fn: convertMass },
-  { regex: VOLUME_REGEX, fn: convertVolume },
+  { regex: VELOCITY_REGEX, fn: convertVelocity, key: 'convertVelocity' },
+  { regex: CSS_UNIT_REGEX, fn: convertCssUnits, key: 'convertCss' },
+  { regex: LENGTH_REGEX, fn: convertLength, key: 'convertLength' },
+  { regex: TEMPERATURE_REGEX, fn: convertTemperature, key: 'convertTemperature' },
+  { regex: MASS_REGEX, fn: convertMass, key: 'convertMass' },
+  { regex: VOLUME_REGEX, fn: convertVolume, key: 'convertVolume' },
 ];
+
+const default_categories = {
+  convertLength: true,
+  convertMass: true,
+  convertVolume: true,
+  convertVelocity: true,
+  convertTemperature: true,
+  convertCss: true,
+}
 
 function revertAllConvertedText(textMap) {
   for (const [node, original] of textMap.entries()) {
@@ -85,20 +94,23 @@ function revertAllConvertedText(textMap) {
   textMap.clear();
 }
 
-function enableConversion(converter, unitSystem = 'imperial', cssUnitSystem = 'px') {
+function enableConversion(converter, unitSystem = 'imperial', cssUnitSystem = 'px', enabledCategories = default_categories) {
   if (converter.observer) {
     converter.observer.disconnect();
   }
-  converter.textMap.clear();
+  if (converter.textMap) {
+    revertAllConvertedText(converter.textMap);
+    converter.textMap.clear();
+  }
   // Run immediately
-  walkAndConvert(document.body, converter.textMap, unitSystem, cssUnitSystem);
+  walkAndConvert(document.body, converter.textMap, unitSystem, cssUnitSystem, enabledCategories);
 
   // Start observing
   converter.observer = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE) {
-          walkAndConvert(node, converter.textMap, unitSystem, cssUnitSystem);
+          walkAndConvert(node, converter.textMap, unitSystem, cssUnitSystem, enabledCategories);
         }
       });
     }
@@ -116,7 +128,7 @@ function disableConversion(converter) {
   revertAllConvertedText(converter.textMap);
 }
 
-function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType) {
+function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enabledCategories = default_categories) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
 
   let node;
@@ -134,77 +146,59 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType) {
     let changed = false;
     let text = original;
 
-    for (const { regex, fn } of CONVERTERS) {
+    for (const { regex, fn, key } of CONVERTERS) {
+      if (!enabledCategories?.[key]) continue;
+
       text = text.replace(regex, (match, num, unit) => {
         const from = unit.toLowerCase();
-        let to;
+          let to;
+          let converted;
 
-        // --- CSS UNITS ---
-        if (fn === convertCssUnits) {
-          to = cssUnitType;
-          if (from === to) return match;
-        }
+          if (fn === convertCssUnits) {
+            to = cssUnitType;
+            if (from === to) return match;
+            converted = fn(parseFloat(num), from, to);
+          } else if (fn === convertLength) {
+            to = LENGTH_TARGET_UNITS[systemType]?.[from];
+            if (!to) return match;
+            converted = fn(parseFloat(num), from, to);
+          } else if (fn === convertMass) {
+            to = MASS_TARGET_UNITS[systemType]?.[from];
+            if (!to) return match;
+            converted = fn(parseFloat(num), from, to);
+          } else if (fn === convertVolume) {
+            const normalized = NORMALIZE_VOLUME_UNIT[from];
+            if (!normalized) return match;
 
-        // --- LENGTH UNITS ---
-        else if (fn === convertLength) {
-          to = LENGTH_TARGET_UNITS[systemType]?.[from];
-          if (!to) return match;
-        }
+            to = VOLUME_TARGET_UNITS[systemType]?.[normalized];
+            if (!to) return match;
 
-        // --- MASS UNITS ---
-        else if (fn === convertMass) {
-          to = MASS_TARGET_UNITS[systemType]?.[from];
-          if (!to) return match;
-        }
+            converted = fn(parseFloat(num), normalized, to);
+          } else if (fn === convertTemperature) {
+            const normalized = NORMALIZE_TEMP[from];
+            if (!normalized) return match;
 
-        // --- VOLUME UNITS ---
-        else if (fn === convertVolume) {
-          const normalized = NORMALIZE_VOLUME_UNIT[from];
-          if (!normalized) return match;
+            to = TEMPERATURE_TARGET_UNITS[systemType]?.[normalized];
+            if (!to) return match;
 
-          to = VOLUME_TARGET_UNITS[systemType]?.[normalized];
-          if (!to) return match;
+            converted = fn(parseFloat(num), normalized, to);
+          } else if (fn === convertVelocity) {
+            const normalized = NORMALIZE_VELOCITY[from];
+            if (!normalized) return match;
 
-          const c = fn(parseFloat(num), normalized, to);
-          if (!c) return match;
+            to = VELOCITY_TARGET_UNITS[systemType]?.[normalized];
+            if (!to) return match;
 
-          changed = true;
-          return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
-        }
+            converted = fn(parseFloat(num), normalized, to);
+          } else {
+            // Fallback universal call
+            converted = fn(parseFloat(num), from, to);
+          }
 
-        else if (fn === convertTemperature) {
-          const normalized = NORMALIZE_TEMP[from];
-          if (!normalized) return match;
-
-          to = TEMPERATURE_TARGET_UNITS[systemType]?.[normalized];
-          if (!to) return match;
-
-          const c = fn(parseFloat(num), normalized, to);
-          if (!c) return match;
-
-          changed = true;
-          return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
-        }
-
-        else if (fn === convertVelocity) {
-          const normalized = NORMALIZE_VELOCITY[from];
-          if (!normalized) return match;
-
-          to = VELOCITY_TARGET_UNITS[systemType]?.[normalized];
-          if (!to) return match;
-
-          const c = fn(parseFloat(num), normalized, to);
-          if (!c) return match;
-
-          changed = true;
-          return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
-        }
-        // --- UNIVERSAL CONVERTER CALL ---
-        const c = fn(parseFloat(num), from, to);
-        if (!c) return match;
+          if (!converted) return match;
 
         changed = true;
-        return `${match} (${c.value.toFixed(2)} ${c.unit})/*converted*/`;
+        return `${match} (${converted.value.toFixed(2)} ${converted.unit})/*converted*/`;
       });
     }
 
