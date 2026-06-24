@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/content/dom/walker.js", () => ({
   enableConversion: vi.fn(),
   disableConversion: vi.fn(),
-  defaultCategories: {},
+  defaultCategories: { },
 }));
 
 let enableConversion;
@@ -65,11 +65,28 @@ describe("content/index.js storage behavior", () => {
 
     // Simulate a toggle ON
     const listener = chrome.storage.onChanged.addListener.mock.calls[0][0];
+    chrome.storage.sync.get.mockImplementation((keys, cb) =>
+      cb({
+        autoConvert: true,
+        unitSystem: "imperial",
+        cssUnitSystem: "px",
+        enabledCategories: { convertLength: true }
+      })
+    );
+
     listener({ autoConvert: { newValue: true } });
 
     expect(enableConversion).toHaveBeenCalledTimes(1);
 
-    // Simulate a toggle OFF
+    // --- Simulate toggle OFF ---
+    chrome.storage.sync.get.mockImplementation((keys, cb) =>
+      cb({
+        autoConvert: false,
+        unitSystem: "imperial",
+        cssUnitSystem: "px",
+        enabledCategories: { convertLength: true }
+      })
+    );
     listener({ autoConvert: { newValue: false } });
 
     expect(disableConversion).toHaveBeenCalledTimes(1);

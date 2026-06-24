@@ -26,10 +26,6 @@ chrome.storage.onChanged.addListener((changes) => {
 
   if (!autoConvertChanged && !systemChanged && !cssChanged && !categoriesChanged) return;
 
-  // const enabled = autoConvertChanged
-  //   ? changes.autoConvert.newValue
-  //   : true;
-
   chrome.storage.sync.get(["autoConvert", "unitSystem", "cssUnitSystem", "enabledCategories"], (data) => {
     const enabled = data.autoConvert === true;
     const system = data.unitSystem ?? "imperial";
