@@ -243,4 +243,94 @@ describe("auto-convert toggle behavior", () => {
     expect(text).toContain("100 m³");
     expect(text).toContain("20 m²/s");
   });
+
+  it("converts density units when enableConversion is called", () => {
+    document.body.innerHTML = `<p>1000 kg/m³</p>`;
+    const map = new Map();
+    const node = document.querySelector("p").firstChild;
+
+    map.set(node, node.nodeValue);
+
+    enableConversion(
+      { observer: null, textMap: map },
+      "imperial",
+      "px",
+      { convertDensity: true }
+    );
+
+    expect(parseFloat(node.nodeValue.match(/(\d+\.\d+)/)[1])).toBeCloseTo(62.4279, 2);
+  });
+
+  it("converts ASCII density units when enableConversion is called", () => {
+    document.body.innerHTML = `<p>1 g/cm3</p>`;
+    const map = new Map();
+    const node = document.querySelector("p").firstChild;
+
+    map.set(node, node.nodeValue);
+
+    enableConversion(
+      { observer: null, textMap: map },
+      "imperial",
+      "px",
+      { convertDensity: true }
+    );
+
+    // 1 g/cm³ ≈ 0.036127 lb/in³
+    expect(node.nodeValue).toMatch(/1 g\/cm3\s*\(\s*0\.04/i);
+  });
+
+  it("reverts density conversions when disableConversion is called", () => {
+    document.body.innerHTML = `<p>1000 kg/m³</p>`;
+    const map = new Map();
+    const node = document.querySelector("p").firstChild;
+
+    map.set(node, "1000 kg/m³");
+    node.nodeValue = "1000 kg/m³ (62.43 lb/ft³)";
+
+    disableConversion({ observer: null, textMap: map });
+
+    expect(node.nodeValue).toBe("1000 kg/m³");
+  });
+
+  it("does not collide with area, volume, velocity, or CSS units", () => {
+    document.body.innerHTML = `
+      <p>
+        20 m²
+        100 m³
+        10 m/s
+        16px
+        500 cm²
+        2 lb/ft³/s
+        7.85 g/cm³/s
+      </p>
+    `;
+
+    const map = new Map();
+    const node = document.querySelector("p").firstChild;
+
+    map.set(node, node.nodeValue);
+
+    enableConversion(
+      { observer: null, textMap: map },
+      "imperial",
+      "px",
+      { convertDensity: true }
+    );
+
+    const text = node.nodeValue;
+
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*lb\/ft³\)/); // no composite density
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*lb\/in³\)/); // no composite density
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*ft²\)/);    // no area conversion
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*ft³\)/);    // no volume conversion
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*px\)/);     // no CSS conversion
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*mph\)/);    // no velocity conversion
+    expect(text).toContain("20 m²");
+    expect(text).toContain("100 m³");
+    expect(text).toContain("10 m/s");
+    expect(text).toContain("16px");
+    expect(text).toContain("500 cm²");
+    expect(text).toContain("2 lb/ft³/s");
+    expect(text).toContain("7.85 g/cm³/s");
+  });
 });

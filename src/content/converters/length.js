@@ -18,11 +18,25 @@ const METERS_TO_UNIT = {
   cm: 100,
   m: 1,
   km: 1 / 1000,
-
   in: 1 / 0.0254,
   ft: 1 / 0.3048,
   yd: 1 / 0.9144,
   mi: 1 / 1609.344
+};
+
+const LENGTH_TARGET_UNITS = {
+  imperial: {
+    mm: "in",
+    cm: "in",
+    m: "ft",
+    km: "mi"
+  },
+  metric: {
+    in: "cm",
+    ft: "m",
+    yd: "m",
+    mi: "km"
+  }
 };
 
 function convertLength(value, fromUnit, toUnit) {
@@ -52,5 +66,6 @@ function convertLength(value, fromUnit, toUnit) {
 
 export {
   convertLength,
-  LENGTH_REGEX
+  LENGTH_REGEX,
+  LENGTH_TARGET_UNITS,
 };

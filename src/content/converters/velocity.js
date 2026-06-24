@@ -10,6 +10,17 @@ const NORMALIZE_VELOCITY = {
   fps: "ft/s"
 };
 
+const VELOCITY_TARGET_UNITS = {
+  imperial: {
+    "m/s": "mph",
+    "km/h": "mph"
+  },
+  metric: {
+    mph: "km/h",
+    "ft/s": "m/s"
+  }
+};
+
 const VELOCITY_TO_MPS = {
   "m/s": 1,
   "km/h": 1 / 3.6,
@@ -50,5 +61,6 @@ function convertVelocity(value, fromUnit, toUnit) {
 export {
   convertVelocity,
   NORMALIZE_VELOCITY,
-  VELOCITY_REGEX
+  VELOCITY_REGEX,
+  VELOCITY_TARGET_UNITS,
 };

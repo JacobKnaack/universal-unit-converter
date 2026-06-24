@@ -10,6 +10,11 @@ const NORMALIZE_TEMP = {
   fahrenheit: "F"
 };
 
+const TEMPERATURE_TARGET_UNITS = {
+  imperial: { C: "F" },
+  metric: { F: "C" }
+};
+
 function convertTemperature(value, fromUnit, toUnit) {
   const from = NORMALIZE_TEMP[fromUnit.toLowerCase()];
   const to = NORMALIZE_TEMP[toUnit.toLowerCase()];
@@ -43,5 +48,6 @@ function convertTemperature(value, fromUnit, toUnit) {
 export {
   convertTemperature,
   NORMALIZE_TEMP,
-  TEMPERATURE_REGEX
+  TEMPERATURE_REGEX,
+  TEMPERATURE_TARGET_UNITS,
 };

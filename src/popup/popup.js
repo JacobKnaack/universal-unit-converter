@@ -6,6 +6,7 @@ import {
   convertVolume,
   convertVelocity,
   convertArea,
+  convertDensity,
 } from "@/content/converters/index.js";
 import { defaultCategories } from "@/content/dom/walker";
 
@@ -27,6 +28,7 @@ const categoryCheckboxes = {
   convertTemperature: document.getElementById("convertTemperature"),
   convertCss: document.getElementById("convertCss"),
   convertArea: document.getElementById("convertArea"),
+  convertDensity: document.getElementById('convertDensity'),
 }
 
 // Adds eventlistener to save settings after each click
@@ -124,7 +126,8 @@ const UNIT_MAP = {
   volume: ["ml", "l", "m³", "fl oz", "gal", "ft³"],
   velocity: ["m/s", "km/h", "mph", "ft/s"],
   css: ["px", "rem", "em", "vh", "vw"],
-  area: ["mm²", "cm²", "m²", "km²", "in²", "ft²", "yd²", "mi²"], 
+  area: ["mm²", "cm²", "m²", "km²", "in²", "ft²", "yd²", "mi²"],
+  density: ["kg/m³", "g/cm³", "g/mL", "lb/ft³", "lb/in³"],
 };
 
 /* -----------------------------
@@ -193,6 +196,9 @@ function convertManual(category, value, fromUnit, toUnit) {
 
     case "area":
       return convertArea(v, fromUnit, toUnit);
+
+    case "density":
+      return convertDensity(v, fromUnit, toUnit);
 
     default:
       return "Unsupported category.";

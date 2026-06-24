@@ -50,6 +50,19 @@ const M3_TO_UNIT = {
   "ft³": 1 / 0.0283168
 };
 
+const VOLUME_TARGET_UNITS = {
+  imperial: {
+    ml: "fl oz",
+    l: "gal",
+    "m³": "ft³"
+  },
+  metric: {
+    "fl oz": "ml",
+    gal: "l",
+    "ft³": "m³"
+  }
+};
+
 function convertVolume(value, fromUnit, toUnit) {
   const from = NORMALIZE_VOLUME_UNIT[fromUnit.toLowerCase()];
   const to = NORMALIZE_VOLUME_UNIT[toUnit.toLowerCase()];
@@ -77,5 +90,6 @@ function convertVolume(value, fromUnit, toUnit) {
 export {
   convertVolume,
   NORMALIZE_VOLUME_UNIT,
-  VOLUME_REGEX
+  VOLUME_REGEX,
+  VOLUME_TARGET_UNITS,
 };

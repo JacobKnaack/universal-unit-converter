@@ -1,86 +1,71 @@
 import {
-  convertLength,
-  LENGTH_REGEX,
-  NORMALIZE_VOLUME_UNIT,
-  convertTemperature,
-  TEMPERATURE_REGEX,
-  NORMALIZE_TEMP,
-  convertMass,
-  MASS_REGEX,
-  convertVolume,
-  VOLUME_REGEX,
-  VELOCITY_REGEX,
-  NORMALIZE_VELOCITY,
-  convertVelocity,
-  CSS_UNIT_REGEX,
-  convertCssUnits,
-  AREA_REGEX,
-  convertArea,
-  AREA_TARGET_UNITS,
-  NORMALIZE_AREA_UNIT,
+  convertLength, LENGTH_REGEX, LENGTH_TARGET_UNITS,
+  convertTemperature, TEMPERATURE_REGEX, NORMALIZE_TEMP, TEMPERATURE_TARGET_UNITS,
+  convertMass, MASS_REGEX, MASS_TARGET_UNITS,
+  convertVolume, NORMALIZE_VOLUME_UNIT, VOLUME_REGEX, VOLUME_TARGET_UNITS,
+  convertVelocity, VELOCITY_REGEX, NORMALIZE_VELOCITY, VELOCITY_TARGET_UNITS,
+  convertCssUnits, CSS_UNIT_REGEX,
+  convertArea, AREA_REGEX, AREA_TARGET_UNITS, NORMALIZE_AREA_UNIT,
+  convertDensity, DENSITY_REGEX, NORMALIZE_DENSITY_UNIT, DENSITY_TARGET_UNITS,
  } from "../converters/index.js";
 
 const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f|px|rem|em|mph|km\/h|m\/s|ft\/s)\s*\)/i;
 const URL_REGEX = /https?:\/\/[^\s]+/i;
 
-const LENGTH_TARGET_UNITS = {
-  imperial: {
-    mm: "in",
-    cm: "in",
-    m: "ft",
-    km: "mi"
-  },
-  metric: {
-    in: "cm",
-    ft: "m",
-    yd: "m",
-    mi: "km"
-  }
-};
-
-const MASS_TARGET_UNITS = {
-  imperial: { g: "oz", kg: "lb" },
-  metric: { lb: "kg", oz: "g" }
-};
-
-const VOLUME_TARGET_UNITS = {
-  imperial: {
-    ml: "fl oz",
-    l: "gal",
-    "m³": "ft³"
-  },
-  metric: {
-    "fl oz": "ml",
-    gal: "l",
-    "ft³": "m³"
-  }
-};
-
-const TEMPERATURE_TARGET_UNITS = {
-  imperial: { C: "F" },
-  metric: { F: "C" }
-};
-
-const VELOCITY_TARGET_UNITS = {
-  imperial: {
-    "m/s": "mph",
-    "km/h": "mph"
-  },
-  metric: {
-    mph: "km/h",
-    "ft/s": "m/s"
-  }
-};
-
-
 const CONVERTERS = [
-  { regex: VELOCITY_REGEX, fn: convertVelocity, key: 'convertVelocity' },
-  { regex: CSS_UNIT_REGEX, fn: convertCssUnits, key: 'convertCss' },
-  { regex: LENGTH_REGEX, fn: convertLength, key: 'convertLength' },
-  { regex: TEMPERATURE_REGEX, fn: convertTemperature, key: 'convertTemperature' },
-  { regex: MASS_REGEX, fn: convertMass, key: 'convertMass' },
-  { regex: VOLUME_REGEX, fn: convertVolume, key: 'convertVolume' },
-  { regex: AREA_REGEX, fn: convertArea, key: 'convertArea' },
+  { 
+    key: 'convertVelocity',
+    regex: VELOCITY_REGEX,
+    convert: convertVelocity,
+    normalize: (u) => NORMALIZE_VELOCITY[u],
+    getTarget: (from, system) => VELOCITY_TARGET_UNITS[system]?.[from],
+  },
+  { 
+    key: 'convertCss',
+    regex: CSS_UNIT_REGEX,
+    convert: convertCssUnits,
+    getTarget: (from, system, cssSystem) => from === cssSystem ? null : cssSystem,
+  },
+  {
+    key: 'convertLength',
+    regex: LENGTH_REGEX,
+    convert: convertLength,
+    getTarget: (from, system) => LENGTH_TARGET_UNITS[system]?.[from],
+  },
+  {
+    key: 'convertTemperature',
+    regex: TEMPERATURE_REGEX,
+    convert: convertTemperature,
+    normalize: (u) => NORMALIZE_TEMP[u],
+    getTarget: (from, system) => TEMPERATURE_TARGET_UNITS[system]?.[from],
+  },
+  {
+    key: 'convertMass',
+    regex: MASS_REGEX,
+    convert: convertMass,
+    getTarget: (from, system) => MASS_TARGET_UNITS[system]?.[from],
+  },
+  { 
+    key: 'convertVolume',
+    regex: VOLUME_REGEX,
+    convert: convertVolume,
+    normalize: (u) => NORMALIZE_VOLUME_UNIT[u],
+    getTarget: (from, system) => VOLUME_TARGET_UNITS[system]?.[from],
+  },
+  { 
+    key: 'convertArea',
+    regex: AREA_REGEX,
+    convert: convertArea,
+    normalize: (u) => NORMALIZE_AREA_UNIT[u],
+    getTarget: (from, system) => AREA_TARGET_UNITS[system]?.[from],
+  },
+  { 
+    key: 'convertDensity',
+    regex: DENSITY_REGEX,
+    convert: convertDensity,
+    normalize: (u) => NORMALIZE_DENSITY_UNIT[u],
+    getTarget: (from, system) => DENSITY_TARGET_UNITS[system]?.[from],
+  },
 ];
 
 const defaultCategories = {
@@ -91,6 +76,7 @@ const defaultCategories = {
   convertTemperature: true,
   convertCss: true,
   convertArea: true,
+  convertDensity: true,
 }
 
 function revertAllConvertedText(textMap) {
@@ -152,66 +138,28 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enab
     let changed = false;
     let text = original;
 
-    for (const { regex, fn, key } of CONVERTERS) {
+    const handleReplaceText = (converter, systemType, cssUnitType) => (match, num, unit) => {
+      if (!converter) return match;
+
+      const from = unit.toLowerCase();
+      const normalized = converter.normalize ? converter.normalize(from) : from;
+      if (!normalized) return match;
+
+      const to = converter.getTarget ? converter.getTarget(normalized, systemType, cssUnitType) : null;
+      if (!to) return match;
+
+      const converted = converter.convert(parseFloat(num.replace(/,/g, '')), normalized, to);
+      if (!converted) return match;
+
+      changed = true;
+      return `${match} (${converted.value.toFixed(2)} ${converted.unit})/*converted*/`;
+    }
+
+    for (const converter of CONVERTERS) {
+      const { key, regex } = converter;
       if (!enabledCategories?.[key]) continue;
 
-      text = text.replace(regex, (match, num, unit) => {
-        const from = unit.toLowerCase();
-          let to;
-          let converted;
-
-          if (fn === convertCssUnits) {
-            to = cssUnitType;
-            if (from === to) return match;
-            converted = fn(parseFloat(num), from, to);
-          } else if (fn === convertLength) {
-            to = LENGTH_TARGET_UNITS[systemType]?.[from];
-            if (!to) return match;
-            converted = fn(parseFloat(num), from, to);
-          } else if (fn === convertMass) {
-            to = MASS_TARGET_UNITS[systemType]?.[from];
-            if (!to) return match;
-            converted = fn(parseFloat(num), from, to);
-          } else if (fn === convertVolume) {
-            const normalized = NORMALIZE_VOLUME_UNIT[from];
-            if (!normalized) return match;
-
-            to = VOLUME_TARGET_UNITS[systemType]?.[normalized];
-            if (!to) return match;
-
-            converted = fn(parseFloat(num), normalized, to);
-          } else if (fn === convertTemperature) {
-            const normalized = NORMALIZE_TEMP[from];
-            if (!normalized) return match;
-
-            to = TEMPERATURE_TARGET_UNITS[systemType]?.[normalized];
-            if (!to) return match;
-
-            converted = fn(parseFloat(num), normalized, to);
-          } else if (fn === convertVelocity) {
-            const normalized = NORMALIZE_VELOCITY[from];
-            if (!normalized) return match;
-
-            to = VELOCITY_TARGET_UNITS[systemType]?.[normalized];
-            if (!to) return match;
-
-            converted = fn(parseFloat(num), normalized, to);
-          } else if (fn === convertArea) {
-            const normalized = NORMALIZE_AREA_UNIT[from];
-            if (!normalized) return match;
-            to = AREA_TARGET_UNITS[systemType]?.[normalized];
-            if (!to) return match;
-            converted = fn(parseFloat(num), from, to);
-          } else {
-            // Fallback universal call
-            converted = fn(parseFloat(num), from, to);
-          }
-
-          if (!converted) return match;
-
-        changed = true;
-        return `${match} (${converted.value.toFixed(2)} ${converted.unit})/*converted*/`;
-      });
+      text = text.replace(regex, handleReplaceText(converter, systemType, cssUnitType));
     }
 
     if (changed) {

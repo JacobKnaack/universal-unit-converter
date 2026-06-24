@@ -1,4 +1,4 @@
-const AREA_REGEX = /\b(\d+(?:\.\d+)?)\s*(mm²|cm²|m²|km²|in²|ft²|yd²|mi²|mm2|cm2|m2|km2|in2|ft2|yd2|mi2)(?![A-Za-z0-9/])/giu;
+const AREA_REGEX = /(\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)[ ]*(mm²|cm²|m²|km²|in²|ft²|yd²|mi²|mm2|cm2|m2|km2|in2|ft2|yd2|mi2|mm\^2|cm\^2|m\^2|km\^2|in\^2|ft\^2|yd\^2|mi\^2)(?![A-Za-z0-9/])/gi;
 
 const NORMALIZE_AREA_UNIT = {
   "mm²": "mm2",
@@ -9,7 +9,8 @@ const NORMALIZE_AREA_UNIT = {
   "ft²": "ft2",
   "yd²": "yd2",
   "mi²": "mi2",
-  // ASCII fallbacks
+  "ha": "ha",
+  "acre": "acre",
   "mm2": "mm2",
   "cm2": "cm2",
   "m2": "m2",
@@ -18,24 +19,30 @@ const NORMALIZE_AREA_UNIT = {
   "ft2": "ft2",
   "yd2": "yd2",
   "mi2": "mi2",
+  "mm^2": "mm2",
+  "cm^2": "cm2",
+  "m^2": "m2",
+  "km^2": "km2",
+  "in^2": "in2",
+  "ft^2": "ft2",
+  "yd^2": "yd2",
+  "mi^2": "mi2",
 };
 
 const AREA_TARGET_UNITS = {
   metric: {
-    mm2: "cm2",
-    cm2: "m2",
-    m2: "km2",
-    km2: "m2",
+    in2: "cm2",
+    ft2: "m2",
+    yd2: "m2",
+    mi2: "km2",
+    acre: "m2", // or "ha"
   },
   imperial: {
     mm2: "in2",
     cm2: "in2",
     m2: "ft2",
     km2: "mi2",
-    in2: "cm2",
-    ft2: "m2",
-    yd2: "m2",
-    mi2: "km2",
+    ha: "acre",
   },
 };
 
@@ -55,7 +62,7 @@ function convertArea(value, fromUnit, toUnit) {
   const from = NORMALIZE_AREA_UNIT[fromUnit];
   const to = NORMALIZE_AREA_UNIT[toUnit];
 
-  if (!from || !to) return null;
+  if (!from || !to || from === to) return null;
   const fromLength = from.replace("2", "");
   const toLength = to.replace("2", "");
 

@@ -16,6 +16,11 @@ const KG_TO_UNIT = {
   oz: 1 / 0.0283495
 };
 
+const MASS_TARGET_UNITS = {
+  imperial: { g: "oz", kg: "lb" },
+  metric: { lb: "kg", oz: "g" }
+};
+
 function convertMass(value, fromUnit, toUnit) {
   const from = fromUnit.toLowerCase();
   const to = toUnit.toLowerCase();
@@ -43,5 +48,6 @@ function convertMass(value, fromUnit, toUnit) {
 
 export {
   convertMass,
-  MASS_REGEX
+  MASS_REGEX,
+  MASS_TARGET_UNITS,
 };

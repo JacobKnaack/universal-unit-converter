@@ -1,16 +1,22 @@
 const DENSITY_REGEX = /\b(\d+(?:\.\d+)?)\s*(kg\/m³|kg\/m3|g\/cm³|g\/cm3|g\/mL|g\/ml|lb\/ft³|lb\/ft3|lb\/in³|lb\/in3)(?![A-Za-z0-9/])/giu;
 
 const NORMALIZE_DENSITY_UNIT = {
+  // Metric — Unicode + ASCII
   "kg/m³": "kg_m3",
   "kg/m3": "kg_m3",
+  "kg_m3": "kg_m3",
   "g/cm³": "g_cm3",
   "g/cm3": "g_cm3",
-  "g/mL": "g_cm3",
-  "g/ml": "g_cm3",
+  "g/mL":  "g_cm3",
+  "g/ml":  "g_cm3",
+  "g_cm3": "g_cm3",
+  // Imperial — Unicode + ASCII
   "lb/ft³": "lb_ft3",
   "lb/ft3": "lb_ft3",
+  "lb_ft3": "lb_ft3",
   "lb/in³": "lb_in3",
   "lb/in3": "lb_in3",
+  "lb_in3": "lb_in3",
 };
 
 const MASS_TO_KG = {
@@ -27,6 +33,21 @@ const VOLUME_TO_M3 = {
   "in3": 1.6387064e-5,
 };
 
+const DENSITY_TARGET_UNITS = {
+  imperial: {
+    kg_m3: "lb/ft³",
+    g_cm3: "lb/in³",
+    lb_ft3: "lb/ft³",
+    lb_in3: "lb/in³"
+  },
+  metric: {
+    lb_ft3: "kg/m³",
+    lb_in3: "g/cm³",
+    kg_m3: "kg/m³",
+    g_cm3: "g/cm³"
+  }
+};
+
 function splitDensityUnit(unit) {
   const [mass, volume] = unit.split("_");
   return { mass, volume };
@@ -35,8 +56,7 @@ function splitDensityUnit(unit) {
 function convertDensity(value, fromUnit, toUnit) {
   const from = NORMALIZE_DENSITY_UNIT[fromUnit];
   const to = NORMALIZE_DENSITY_UNIT[toUnit];
-
-  if (!from || !to) return null;
+  if (!from || !to || from == to) return null;
 
   const { mass: fromMass, volume: fromVol } = splitDensityUnit(from);
   const { mass: toMass, volume: toVol } = splitDensityUnit(to);
@@ -53,5 +73,6 @@ function convertDensity(value, fromUnit, toUnit) {
 export {
   DENSITY_REGEX,
   NORMALIZE_DENSITY_UNIT,
+  DENSITY_TARGET_UNITS,
   convertDensity,
 }
