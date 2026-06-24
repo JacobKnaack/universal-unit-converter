@@ -152,4 +152,95 @@ describe("auto-convert toggle behavior", () => {
     expect(text).toContain("m3");
     expect(text).toContain("16px/s");
   });
+
+  it("converts area units when enableConversion is called", () => {
+    document.body.innerHTML = `<p>20 m²</p>`;
+    const map = new Map();
+    const node = document.querySelector("p").firstChild;
+
+    map.set(node, node.nodeValue);
+
+    enableConversion(
+      { observer: null, textMap: map },
+      "imperial",
+      "px",
+      { convertArea: true }
+    );
+
+    expect(node.nodeValue).toMatch(/20 m²\s*\(\s*215\.28(\s*ft²)?/i);
+  });
+
+  it("converts ASCII area units when enableConversion is called", () => {
+    document.body.innerHTML = `<p>5000 m2</p>`;
+    const map = new Map();
+    const node = document.querySelector("p").firstChild;
+
+    map.set(node, node.nodeValue);
+
+    enableConversion(
+      { observer: null, textMap: map },
+      "imperial",
+      "px",
+      { convertArea: true }
+    );
+
+    expect(node.nodeValue).toMatch(/5000 m2\s*\(\s*53819(\.\d+)?\s*ft2\)/i);
+  });
+
+  it("reverts area conversions when disableConversion is called", () => {
+    document.body.innerHTML = `<p>20 m²</p>`;
+    const map = new Map();
+    const node = document.querySelector("p").firstChild;
+
+    map.set(node, "20 m²");
+    node.nodeValue = "20 m² (215.28 ft²)";
+
+    disableConversion({ observer: null, textMap: map });
+
+    expect(node.nodeValue).toBe("20 m²");
+  });
+
+  it("does not collide with length, velocity, CSS, or volume units", () => {
+    document.body.innerHTML = `
+      <p>
+        10 m/s
+        50 ft/s
+        3m
+        10cm
+        16px
+        100 m³
+        20 m²/s
+      </p>
+    `;
+
+    const map = new Map();
+    const node = document.querySelector("p").firstChild;
+
+    map.set(node, node.nodeValue);
+
+    enableConversion(
+      { observer: null, textMap: map },
+      "imperial",
+      "px",
+      { convertArea: true }
+    );
+
+    const text = node.nodeValue;
+
+    // Should NOT convert:
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*ft²\)/); // no area conversion inside composite units
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*in\)/);  // no length conversion
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*mph\)/); // no velocity conversion
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*px\)/);  // no CSS conversion
+    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*ft³\)/); // no volume conversion
+
+    // Original text still present
+    expect(text).toContain("10 m/s");
+    expect(text).toContain("50 ft/s");
+    expect(text).toContain("3m");
+    expect(text).toContain("10cm");
+    expect(text).toContain("16px");
+    expect(text).toContain("100 m³");
+    expect(text).toContain("20 m²/s");
+  });
 });

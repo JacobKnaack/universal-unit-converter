@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // We will mock walker.js so we can observe calls to enable/disable
 vi.mock("@/content/dom/walker.js", () => ({
   enableConversion: vi.fn(),
-  disableConversion: vi.fn()
+  disableConversion: vi.fn(),
+  defaultCategories: {},
 }));
 
 let enableConversion;

@@ -14,6 +14,10 @@ import {
   convertVelocity,
   CSS_UNIT_REGEX,
   convertCssUnits,
+  AREA_REGEX,
+  convertArea,
+  AREA_TARGET_UNITS,
+  NORMALIZE_AREA_UNIT,
  } from "../converters/index.js";
 
 const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f|px|rem|em|mph|km\/h|m\/s|ft\/s)\s*\)/i;
@@ -76,15 +80,17 @@ const CONVERTERS = [
   { regex: TEMPERATURE_REGEX, fn: convertTemperature, key: 'convertTemperature' },
   { regex: MASS_REGEX, fn: convertMass, key: 'convertMass' },
   { regex: VOLUME_REGEX, fn: convertVolume, key: 'convertVolume' },
+  { regex: AREA_REGEX, fn: convertArea, key: 'convertArea' },
 ];
 
-const default_categories = {
+const defaultCategories = {
   convertLength: true,
   convertMass: true,
   convertVolume: true,
   convertVelocity: true,
   convertTemperature: true,
   convertCss: true,
+  convertArea: true,
 }
 
 function revertAllConvertedText(textMap) {
@@ -94,7 +100,7 @@ function revertAllConvertedText(textMap) {
   textMap.clear();
 }
 
-function enableConversion(converter, unitSystem = 'imperial', cssUnitSystem = 'px', enabledCategories = default_categories) {
+function enableConversion(converter, unitSystem = 'imperial', cssUnitSystem = 'px', enabledCategories = defaultCategories) {
   if (converter.observer) {
     converter.observer.disconnect();
   }
@@ -128,7 +134,7 @@ function disableConversion(converter) {
   revertAllConvertedText(converter.textMap);
 }
 
-function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enabledCategories = default_categories) {
+function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enabledCategories = defaultCategories) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
 
   let node;
@@ -190,6 +196,12 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enab
             if (!to) return match;
 
             converted = fn(parseFloat(num), normalized, to);
+          } else if (fn === convertArea) {
+            const normalized = NORMALIZE_AREA_UNIT[from];
+            if (!normalized) return match;
+            to = AREA_TARGET_UNITS[systemType]?.[normalized];
+            if (!to) return match;
+            converted = fn(parseFloat(num), from, to);
           } else {
             // Fallback universal call
             converted = fn(parseFloat(num), from, to);
@@ -212,5 +224,6 @@ export {
   walkAndConvert,
   revertAllConvertedText,
   enableConversion,
-  disableConversion
+  disableConversion,
+  defaultCategories,
 }

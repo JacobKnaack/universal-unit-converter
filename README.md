@@ -26,6 +26,11 @@ A Chrome extension that automatically converts units on any webpage into your pr
 - g, kg  
 - oz, lb  
 
+### **Area**
+- mm², cm², m², km²  
+- in², ft², yd², mi²  
+- Supports both Unicode (m²) and ASCII (m2) formats  
+
 ### **Volume**
 - ml, L, m³  
 - fl oz, gal, ft³  
@@ -36,8 +41,6 @@ A Chrome extension that automatically converts units on any webpage into your pr
 
 ### **CSS Units**
 - px, rem, em, vh, vw  
-
-(Area units intentionally excluded to avoid false positives.)
 
 ## How It Works
 
@@ -79,7 +82,7 @@ All settings are stored in `chrome.storage.sync` and applied instantly across al
 
 ## Roadmap
 
-- Additional unit categories (energy, pressure, area, torque, density, etc.)  
+- Additional unit categories (energy, pressure, torque, density, etc.)
 - Per‑site allowlists  
 - Inline UI for showing/hiding conversions  
 - Currency conversions with live rates  
@@ -88,4 +91,3 @@ All settings are stored in `chrome.storage.sync` and applied instantly across al
 ## License
 
 MIT
-

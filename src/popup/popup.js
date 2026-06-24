@@ -4,8 +4,10 @@ import {
   convertMass,
   convertCssUnits,
   convertVolume,
-  convertVelocity
+  convertVelocity,
+  convertArea,
 } from "@/content/converters/index.js";
+import { defaultCategories } from "@/content/dom/walker";
 
 /* -----------------------------
    ELEMENT REFERENCES
@@ -24,6 +26,7 @@ const categoryCheckboxes = {
   convertVelocity: document.getElementById("convertVelocity"),
   convertTemperature: document.getElementById("convertTemperature"),
   convertCss: document.getElementById("convertCss"),
+  convertArea: document.getElementById("convertArea"),
 }
 
 // Adds eventlistener to save settings after each click
@@ -59,14 +62,7 @@ chrome.storage.sync.get(
     systemSelect.value = data.unitSystem ?? "imperial";
     cssUnitSelect.value = data.cssUnitSystem ?? "px";
 
-    const cats = data.enabledCategories ?? {
-      convertLength: true,
-      convertMass: true,
-      convertVolume: true,
-      convertVelocity: true,
-      convertTemperature: true,
-      convertCss: true
-    };
+    const cats = data.enabledCategories ?? defaultCategories;
 
     const {
       convertLength: lengthBox,
@@ -74,7 +70,8 @@ chrome.storage.sync.get(
       convertVolume: volumeBox,
       convertVelocity: velocityBox,
       convertTemperature: tempBox,
-      convertCss: cssBox
+      convertCss: cssBox,
+      convertArea: areaBox,
     } = categoryCheckboxes;
 
     lengthBox.checked = cats.convertLength;
@@ -83,6 +80,7 @@ chrome.storage.sync.get(
     velocityBox.checked = cats.convertVelocity;
     tempBox.checked = cats.convertTemperature;
     cssBox.checked = cats.convertCss;
+    areaBox.checked = cats.convertArea;
   }
 );
 
@@ -125,7 +123,8 @@ const UNIT_MAP = {
   mass: ["g", "kg", "lb", "oz"],
   volume: ["ml", "l", "m³", "fl oz", "gal", "ft³"],
   velocity: ["m/s", "km/h", "mph", "ft/s"],
-  css: ["px", "rem", "em", "vh", "vw"]
+  css: ["px", "rem", "em", "vh", "vw"],
+  area: ["mm²", "cm²", "m²", "km²", "in²", "ft²", "yd²", "mi²"], 
 };
 
 /* -----------------------------
@@ -191,6 +190,9 @@ function convertManual(category, value, fromUnit, toUnit) {
 
     case "css":
       return convertCssUnits(v, fromUnit, toUnit);
+
+    case "area":
+      return convertArea(v, fromUnit, toUnit);
 
     default:
       return "Unsupported category.";

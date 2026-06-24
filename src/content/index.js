@@ -1,6 +1,7 @@
 import {
   enableConversion,
-  disableConversion
+  disableConversion,
+  defaultCategories as defaultEnabled,
 } from "./dom/walker.js";
 
 const converter = {
@@ -10,14 +11,7 @@ const converter = {
 
 // Load setting and initialize behavior
 chrome.storage.sync.get(['autoConvert', 'unitSystem', 'cssUnitSystem', 'enabledCategories'], ({ autoConvert, unitSystem, cssUnitSystem, enabledCategories }) => {
-  const categories = enabledCategories ?? {
-    convertLength: true,
-    convertMass: true,
-    convertVolume: true,
-    convertVelocity: true,
-    convertTemperature: true,
-    convertCss: true
-  }
+  const categories = enabledCategories ?? defaultEnabled;
   if (autoConvert) {
     enableConversion(converter, unitSystem || 'imperial', cssUnitSystem || 'px', categories);
   };
@@ -32,21 +26,15 @@ chrome.storage.onChanged.addListener((changes) => {
 
   if (!autoConvertChanged && !systemChanged && !cssChanged && !categoriesChanged) return;
 
-  const enabled = autoConvertChanged
-    ? changes.autoConvert.newValue
-    : true;
+  // const enabled = autoConvertChanged
+  //   ? changes.autoConvert.newValue
+  //   : true;
 
-  chrome.storage.sync.get(["unitSystem", "cssUnitSystem", "enabledCategories"], (data) => {
+  chrome.storage.sync.get(["autoConvert", "unitSystem", "cssUnitSystem", "enabledCategories"], (data) => {
+    const enabled = data.autoConvert === true;
     const system = data.unitSystem ?? "imperial";
     const cssUnitSystem = data.cssUnitSystem ?? "px";
-    const enabledCategories = data.enabledCategories ?? {
-      convertLength: true,
-      convertMass: true,
-      convertVolume: true,
-      convertVelocity: true,
-      convertTemperature: true,
-      convertCss: true
-    };
+    const enabledCategories = data.enabledCategories ?? defaultEnabled;
 
     if (enabled) {
       enableConversion(converter, system, cssUnitSystem, enabledCategories);
