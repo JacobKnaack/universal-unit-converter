@@ -4,7 +4,7 @@ import {
   convertMass, MASS_REGEX, MASS_TARGET_UNITS,
   convertVolume, NORMALIZE_VOLUME_UNIT, VOLUME_REGEX, VOLUME_TARGET_UNITS,
   convertVelocity, VELOCITY_REGEX, NORMALIZE_VELOCITY, VELOCITY_TARGET_UNITS,
-  convertCssUnits, CSS_UNIT_REGEX,
+  convertCssUnits, CSS_UNIT_REGEX, CSS_TARGET_UNIT,
   convertArea, AREA_REGEX, AREA_TARGET_UNITS, NORMALIZE_AREA_UNIT,
   convertDensity, DENSITY_REGEX, NORMALIZE_DENSITY_UNIT, DENSITY_TARGET_UNITS,
   CURRENCY_REGEX,
@@ -19,53 +19,53 @@ const CONVERTERS = [
     regex: VELOCITY_REGEX,
     convert: convertVelocity,
     normalize: (u) => NORMALIZE_VELOCITY[u],
-    getTarget: (from, system) => VELOCITY_TARGET_UNITS[system]?.[from],
+    getTarget: (from) => VELOCITY_TARGET_UNITS[from],
   },
   { 
     key: 'convertCss',
     regex: CSS_UNIT_REGEX,
     convert: convertCssUnits,
-    getTarget: (from, system, cssSystem) => from === cssSystem ? null : cssSystem,
+    getTarget: (from) => CSS_TARGET_UNIT[from],
   },
   {
     key: 'convertLength',
     regex: LENGTH_REGEX,
     convert: convertLength,
-    getTarget: (from, system) => LENGTH_TARGET_UNITS[system]?.[from],
+    getTarget: (from) => LENGTH_TARGET_UNITS[from],
   },
   {
     key: 'convertTemperature',
     regex: TEMPERATURE_REGEX,
     convert: convertTemperature,
     normalize: (u) => NORMALIZE_TEMP[u],
-    getTarget: (from, system) => TEMPERATURE_TARGET_UNITS[system]?.[from],
+    getTarget: (from) => TEMPERATURE_TARGET_UNITS[from],
   },
   {
     key: 'convertMass',
     regex: MASS_REGEX,
     convert: convertMass,
-    getTarget: (from, system) => MASS_TARGET_UNITS[system]?.[from],
+    getTarget: (from) => MASS_TARGET_UNITS[from],
   },
   { 
     key: 'convertVolume',
     regex: VOLUME_REGEX,
     convert: convertVolume,
     normalize: (u) => NORMALIZE_VOLUME_UNIT[u],
-    getTarget: (from, system) => VOLUME_TARGET_UNITS[system]?.[from],
+    getTarget: (from) => VOLUME_TARGET_UNITS[from],
   },
   { 
     key: 'convertArea',
     regex: AREA_REGEX,
     convert: convertArea,
     normalize: (u) => NORMALIZE_AREA_UNIT[u],
-    getTarget: (from, system) => AREA_TARGET_UNITS[system]?.[from],
+    getTarget: (from) => AREA_TARGET_UNITS[from],
   },
   { 
     key: 'convertDensity',
     regex: DENSITY_REGEX,
     convert: convertDensity,
     normalize: (u) => NORMALIZE_DENSITY_UNIT[u],
-    getTarget: (from, system) => DENSITY_TARGET_UNITS[system]?.[from],
+    getTarget: (from) => DENSITY_TARGET_UNITS[from],
   },
 ];
 
@@ -87,7 +87,7 @@ function revertAllConvertedText(textMap) {
   textMap.clear();
 }
 
-function enableConversion(converter, unitSystem = 'imperial', cssUnitSystem = 'px', enabledCategories = defaultCategories) {
+function enableConversion(converter, enabledCategories = defaultCategories) {
   if (converter.observer) {
     converter.observer.disconnect();
   }
@@ -96,14 +96,14 @@ function enableConversion(converter, unitSystem = 'imperial', cssUnitSystem = 'p
     converter.textMap.clear();
   }
   // Run immediately
-  walkAndConvert(document.body, converter.textMap, unitSystem, cssUnitSystem, enabledCategories);
+  walkAndConvert(document.body, converter.textMap, enabledCategories);
 
   // Start observing
   converter.observer = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE) {
-          walkAndConvert(node, converter.textMap, unitSystem, cssUnitSystem, enabledCategories);
+          walkAndConvert(node, converter.textMap, enabledCategories);
         }
       });
     }
@@ -121,7 +121,7 @@ function disableConversion(converter) {
   revertAllConvertedText(converter.textMap);
 }
 
-function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enabledCategories = defaultCategories) {
+function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCategories) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
 
   let node;
@@ -139,14 +139,14 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enab
     let changed = false;
     let text = maskUrls(original);
 
-    const handleReplaceText = (converter, systemType, cssUnitType) => (match, num, unit) => {
+    const handleReplaceText = (converter) => (match, num, unit) => {
       if (!converter) return match;
 
       const from = unit.toLowerCase();
       const normalized = converter.normalize ? converter.normalize(from) : from;
       if (!normalized) return match;
 
-      const to = converter.getTarget ? converter.getTarget(normalized, systemType, cssUnitType) : null;
+      const to = converter.getTarget ? converter.getTarget(normalized) : null;
       if (!to) return match;
 
       const converted = converter.convert(parseFloat(num.replace(/,/g, '')), normalized, to);
@@ -163,7 +163,7 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enab
       const { key, regex } = converter;
       if (!enabledCategories?.[key]) continue;
 
-      text = text.replace(regex, handleReplaceText(converter, systemType, cssUnitType));
+      text = text.replace(regex, handleReplaceText(converter));
     }
     
     // TODO: remove this after currency converion is complete

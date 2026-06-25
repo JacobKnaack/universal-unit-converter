@@ -4,15 +4,14 @@ const NORMALIZE_TEMP = {
   c: "C",
   "°c": "C",
   celsius: "C",
-
   f: "F",
   "°f": "F",
   fahrenheit: "F"
 };
 
 const TEMPERATURE_TARGET_UNITS = {
-  imperial: { C: "F" },
-  metric: { F: "C" }
+  C: "F",
+  F: "C",
 };
 
 function convertTemperature(value, fromUnit, toUnit) {

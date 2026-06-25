@@ -15,8 +15,6 @@ import { defaultCategories } from "@/content/dom/walker";
 ----------------------------- */
 
 // Auto-conversion settings
-const systemSelect = document.getElementById("system");
-const cssUnitSelect = document.getElementById("cssUnitSystem");
 const autoConvert = document.getElementById("autoConvert");
 const status = document.getElementById("status");
 
@@ -58,11 +56,9 @@ const result = document.getElementById("result");
 ----------------------------- */
 
 chrome.storage.sync.get(
-  ["autoConvert", "unitSystem", "cssUnitSystem", "enabledCategories"],
+  ["autoConvert", "enabledCategories"],
   (data) => {
     autoConvert.checked = data.autoConvert ?? false;
-    systemSelect.value = data.unitSystem ?? "imperial";
-    cssUnitSelect.value = data.cssUnitSystem ?? "px";
 
     const cats = data.enabledCategories ?? defaultCategories;
 
@@ -92,14 +88,6 @@ chrome.storage.sync.get(
 
 autoConvert.addEventListener("change", () => {
   chrome.storage.sync.set({ autoConvert: autoConvert.checked }, showSaved);
-});
-
-systemSelect.addEventListener("change", () => {
-  chrome.storage.sync.set({ unitSystem: systemSelect.value }, showSaved);
-});
-
-cssUnitSelect.addEventListener("change", () => {
-  chrome.storage.sync.set({ cssUnitSystem: cssUnitSelect.value }, showSaved);
 });
 
 let tid = null;

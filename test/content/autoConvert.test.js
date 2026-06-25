@@ -43,7 +43,7 @@ describe("auto-convert toggle behavior", () => {
 
     map.set(node, node.nodeValue);
 
-    enableConversion({ observer: null, textMap: map }, "imperial", "rem");
+    enableConversion({ observer: null, textMap: map });
 
     expect(node.nodeValue).toMatch(/16px\s*\(\s*1(\.00)?\s*rem\)/);
   });
@@ -55,7 +55,7 @@ describe("auto-convert toggle behavior", () => {
 
     map.set(node, node.nodeValue);
 
-    enableConversion({ observer: null, textMap: map }, "imperial", "px");
+    enableConversion({ observer: null, textMap: map });
 
     expect(node.nodeValue).toMatch(/2rem\s*\(\s*32(\.00)?\s*px\)/);
   });
@@ -87,7 +87,7 @@ describe("auto-convert toggle behavior", () => {
     map.set(node, node.nodeValue);
 
     // cssUnitSystem = "px" so vh → px
-    enableConversion({ observer: null, textMap: map }, "imperial", "px");
+    enableConversion({ observer: null, textMap: map });
 
     // 10vh = 10% of 900px = 90px
     expect(node.nodeValue).toMatch(/10vh\s*\(\s*90(\.00)?\s*px\)/);
@@ -107,7 +107,7 @@ describe("auto-convert toggle behavior", () => {
     map.set(node, node.nodeValue);
 
     // cssUnitSystem = "px" so vw → px
-    enableConversion({ observer: null, textMap: map }, "imperial", "px");
+    enableConversion({ observer: null, textMap: map });
 
     // 25vw = 25% of 1200px = 300px
     expect(node.nodeValue).toMatch(/25vw\s*\(\s*300(\.00)?\s*px\)/);
@@ -133,7 +133,7 @@ describe("auto-convert toggle behavior", () => {
     map.set(node, node.nodeValue);
 
     // Enable conversion with cssUnitSystem = "rem"
-    enableConversion({ observer: null, textMap: map }, "imperial", "rem", { convertCSSUnit: true });
+    enableConversion({ observer: null, textMap: map }, { convertCSSUnit: true });
 
     const text = node.nodeValue;
 
@@ -162,8 +162,6 @@ describe("auto-convert toggle behavior", () => {
 
     enableConversion(
       { observer: null, textMap: map },
-      "imperial",
-      "px",
       { convertArea: true }
     );
 
@@ -179,8 +177,6 @@ describe("auto-convert toggle behavior", () => {
 
     enableConversion(
       { observer: null, textMap: map },
-      "imperial",
-      "px",
       { convertArea: true }
     );
 
@@ -220,8 +216,6 @@ describe("auto-convert toggle behavior", () => {
 
     enableConversion(
       { observer: null, textMap: map },
-      "imperial",
-      "px",
       { convertArea: true }
     );
 
@@ -253,8 +247,6 @@ describe("auto-convert toggle behavior", () => {
 
     enableConversion(
       { observer: null, textMap: map },
-      "imperial",
-      "px",
       { convertDensity: true }
     );
 
@@ -270,8 +262,6 @@ describe("auto-convert toggle behavior", () => {
 
     enableConversion(
       { observer: null, textMap: map },
-      "imperial",
-      "px",
       { convertDensity: true }
     );
 
@@ -312,8 +302,6 @@ describe("auto-convert toggle behavior", () => {
 
     enableConversion(
       { observer: null, textMap: map },
-      "imperial",
-      "px",
       { convertDensity: true }
     );
 

@@ -17,8 +17,10 @@ const KG_TO_UNIT = {
 };
 
 const MASS_TARGET_UNITS = {
-  imperial: { g: "oz", kg: "lb" },
-  metric: { lb: "kg", oz: "g" }
+  g: "oz",
+  kg: "lb",
+  lb: "kg",
+  oz: "g",
 };
 
 function convertMass(value, fromUnit, toUnit) {

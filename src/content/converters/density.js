@@ -34,18 +34,10 @@ const VOLUME_TO_M3 = {
 };
 
 const DENSITY_TARGET_UNITS = {
-  imperial: {
-    kg_m3: "lb/ft³",
-    g_cm3: "lb/in³",
-    lb_ft3: "lb/ft³",
-    lb_in3: "lb/in³"
-  },
-  metric: {
-    lb_ft3: "kg/m³",
-    lb_in3: "g/cm³",
-    kg_m3: "kg/m³",
-    g_cm3: "g/cm³"
-  }
+  kg_m3: "lb/ft³",
+  g_cm3: "lb/in³",
+  lb_ft3: "kg/m³",
+  lb_in3: "g/cm³",
 };
 
 function splitDensityUnit(unit) {

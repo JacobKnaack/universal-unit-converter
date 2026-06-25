@@ -30,20 +30,16 @@ const NORMALIZE_AREA_UNIT = {
 };
 
 const AREA_TARGET_UNITS = {
-  metric: {
-    in2: "cm2",
-    ft2: "m2",
-    yd2: "m2",
-    mi2: "km2",
-    acre: "m2", // or "ha"
-  },
-  imperial: {
-    mm2: "in2",
-    cm2: "in2",
-    m2: "ft2",
-    km2: "mi2",
-    ha: "acre",
-  },
+  in2: "cm2",
+  ft2: "m2",
+  yd2: "m2",
+  mi2: "km2",
+  acre: "m2", // or "ha"
+  mm2: "in2",
+  cm2: "in2",
+  m2: "ft2",
+  km2: "mi2",
+  ha: "acre",
 };
 
 // Base conversions (length → meters)

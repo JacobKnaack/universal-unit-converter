@@ -20,7 +20,7 @@ describe("Speed conversion", () => {
   });
 
   it("converts metric → imperial speed units", () => {
-    walkAndConvert(document.body, map, "imperial");
+    walkAndConvert(document.body, map);
 
     const text = document.body.textContent;
 
@@ -35,7 +35,7 @@ describe("Speed conversion", () => {
   });
 
   it("converts imperial → metric speed units", () => {
-    walkAndConvert(document.body, map, "metric");
+    walkAndConvert(document.body, map);
 
     const text = document.body.textContent;
 
@@ -50,14 +50,14 @@ describe("Speed conversion", () => {
   });
 
   it("stores original text in the map", () => {
-    walkAndConvert(document.body, map, "imperial");
+    walkAndConvert(document.body, map);
 
     const node = document.querySelector("p").firstChild;
     expect(map.has(node)).toBe(true);
   });
 
   it("reverts converted speed text back to original", () => {
-    walkAndConvert(document.body, map, "imperial");
+    walkAndConvert(document.body, map);
     revertAllConvertedText(map);
 
     const text = document.body.textContent;

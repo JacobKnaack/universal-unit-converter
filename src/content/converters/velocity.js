@@ -11,14 +11,10 @@ const NORMALIZE_VELOCITY = {
 };
 
 const VELOCITY_TARGET_UNITS = {
-  imperial: {
-    "m/s": "mph",
-    "km/h": "mph"
-  },
-  metric: {
-    mph: "km/h",
-    "ft/s": "m/s"
-  }
+  "m/s": "mph",
+  "km/h": "mph",
+  mph: "km/h",
+  "ft/s": "m/s",
 };
 
 const VELOCITY_TO_MPS = {

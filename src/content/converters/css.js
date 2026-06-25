@@ -1,5 +1,14 @@
 const CSS_UNIT_REGEX = /\b(\d+(?:\.\d+)?)\s?(px|rem|em|vh|vw)\b(?!\/[a-z])/gi;
 
+
+const CSS_TARGET_UNIT = {
+  px: "rem",
+  rem: "px",
+  em: "px",
+  vh: "px",
+  vw: "px",
+};
+
 function convertCssUnits(value, fromUnit, toUnit) {
   const from = fromUnit.toLowerCase();
   const to = toUnit.toLowerCase();
@@ -63,5 +72,6 @@ function convertCssUnits(value, fromUnit, toUnit) {
 
 export {
   CSS_UNIT_REGEX,
+  CSS_TARGET_UNIT,
   convertCssUnits,
 };

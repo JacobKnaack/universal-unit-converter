@@ -1,6 +1,5 @@
 const LENGTH_REGEX = /\b(\d+(?:\.\d+)?)\s*(cm|mm|m|km|in|ft|yd|mi)(?![A-Za-z0-9²³/])\b/gi;
 
-// Base conversion map: all units → meters
 const LENGTH_TO_METERS = {
   mm: 0.001,
   cm: 0.01,
@@ -12,7 +11,6 @@ const LENGTH_TO_METERS = {
   mi: 1609.344
 };
 
-// Reverse map: meters → unit
 const METERS_TO_UNIT = {
   mm: 1000,
   cm: 100,
@@ -25,18 +23,14 @@ const METERS_TO_UNIT = {
 };
 
 const LENGTH_TARGET_UNITS = {
-  imperial: {
-    mm: "in",
-    cm: "in",
-    m: "ft",
-    km: "mi"
-  },
-  metric: {
-    in: "cm",
-    ft: "m",
-    yd: "m",
-    mi: "km"
-  }
+  mm: "in",
+  cm: "in",
+  m: "ft",
+  km: "mi",
+  in: "cm",
+  ft: "m",
+  yd: "m",
+  mi: "km",
 };
 
 function convertLength(value, fromUnit, toUnit) {
