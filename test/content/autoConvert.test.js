@@ -133,7 +133,7 @@ describe("auto-convert toggle behavior", () => {
     map.set(node, node.nodeValue);
 
     // Enable conversion with cssUnitSystem = "rem"
-    enableConversion({ observer: null, textMap: map }, "imperial", "rem");
+    enableConversion({ observer: null, textMap: map }, "imperial", "rem", { convertCSSUnit: true });
 
     const text = node.nodeValue;
 

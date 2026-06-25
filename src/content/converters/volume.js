@@ -1,4 +1,4 @@
-const VOLUME_REGEX = /\b(\d+(?:\.\d+)?)\s?(milliliters?|millilitres?|mils|mls|ml|liters?|litres?|l|m³|m3|m\^3|fl oz|gallon|gal|ft³|ft3|cf|cu ft|cu\.ft|cu\. ft)\b(?!\/[a-z])/gi;
+const VOLUME_REGEX = /\b(\d+(?:\.\d+)?)\s?(milliliters?|millilitres?|mils|mls|ml|liters?|litres?|l|m(?:³|3|\^3)|fl oz|gallon|gal|ft(?:³|3|\^3)|cf|cu ft|cu\.ft|cu\. ft)(?=[)\].,;:!? ]|$)/gi;
 
 // Normalize all unit spellings to canonical forms
 const NORMALIZE_VOLUME_UNIT = {

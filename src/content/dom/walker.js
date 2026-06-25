@@ -9,9 +9,9 @@ import {
   convertDensity, DENSITY_REGEX, NORMALIZE_DENSITY_UNIT, DENSITY_TARGET_UNITS,
   CURRENCY_REGEX,
  } from "../converters/index.js";
+import { maskUrls, unmaskUrls } from "../utility/urls.js";
 
-const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f|px|rem|em|mph|km\/h|m\/s|ft\/s)\s*\)/i;
-const URL_REGEX = /https?:\/\/[^\s]+/i;
+const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|km|in|ft|yd|mi|g|kg|lb|oz|c|f|px|rem|em|mph|km\/h|m\/s|ft\/s)\s*\)/i;
 
 const CONVERTERS = [
   { 
@@ -128,7 +128,7 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enab
   while ((node = walker.nextNode())) {
     const original = node.nodeValue;
 
-    if (ALREADY_CONVERTED_REGEX.test(original) || URL_REGEX.test(original)) {
+    if (ALREADY_CONVERTED_REGEX.test(original)) {
       continue;
     }
 
@@ -137,7 +137,7 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enab
     }
 
     let changed = false;
-    let text = original;
+    let text = maskUrls(original);
 
     const handleReplaceText = (converter, systemType, cssUnitType) => (match, num, unit) => {
       if (!converter) return match;
@@ -156,18 +156,19 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enab
       return `${match} (${converted.value.toFixed(2)} ${converted.unit})/*converted*/`;
     }
 
+    // TODO: remove this after currency converion is complete
+    text = text.replace(CURRENCY_REGEX, match => `__CURRENCY_${match}__`);
+
     for (const converter of CONVERTERS) {
       const { key, regex } = converter;
       if (!enabledCategories?.[key]) continue;
 
-      // TODO: remove this after currency converion is complete
-      text = text.replace(CURRENCY_REGEX, match => `__CURRENCY_${match}__`);
-
       text = text.replace(regex, handleReplaceText(converter, systemType, cssUnitType));
-
-      // TODO: remove this after currency converion is complete
-      text = text.replace(/__CURRENCY_(.*?)__/g, (m, original) => original);
     }
+    
+    // TODO: remove this after currency converion is complete
+    text = text.replace(/__CURRENCY_(.*?)__/g, (m, original) => original);
+    text = unmaskUrls(text);
 
     if (changed) {
       node.nodeValue = text.replace(/\/\*converted\*\//g, "");
