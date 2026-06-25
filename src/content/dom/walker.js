@@ -7,6 +7,7 @@ import {
   convertCssUnits, CSS_UNIT_REGEX,
   convertArea, AREA_REGEX, AREA_TARGET_UNITS, NORMALIZE_AREA_UNIT,
   convertDensity, DENSITY_REGEX, NORMALIZE_DENSITY_UNIT, DENSITY_TARGET_UNITS,
+  CURRENCY_REGEX,
  } from "../converters/index.js";
 
 const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|m|km|in|ft|yd|mi|g|kg|lb|oz|c|f|px|rem|em|mph|km\/h|m\/s|ft\/s)\s*\)/i;
@@ -159,7 +160,13 @@ function walkAndConvert(root, textMap = new Map(), systemType, cssUnitType, enab
       const { key, regex } = converter;
       if (!enabledCategories?.[key]) continue;
 
+      // TODO: remove this after currency converion is complete
+      text = text.replace(CURRENCY_REGEX, match => `__CURRENCY_${match}__`);
+
       text = text.replace(regex, handleReplaceText(converter, systemType, cssUnitType));
+
+      // TODO: remove this after currency converion is complete
+      text = text.replace(/__CURRENCY_(.*?)__/g, (m, original) => original);
     }
 
     if (changed) {
