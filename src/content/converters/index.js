@@ -7,3 +7,4 @@ export * from './css.js';
 export * from './area.js';
 export * from './density.js';
 export * from './currency.js';
+export * from './bytes.js';

@@ -1,13 +1,6 @@
 const URL_REGEX = /https?:\/\/\S+/gi;
 
-// function maskUrls(text) {
-//   return text.replace(URL_REGEX, match => `__URL_${match}__`);
-// }
-
-// function unmaskUrls(text) {
-//   return text.replace(/__URL_(.*?)__/g, (m, original) => original);
-// }
-let URL_STORE = [];
+const URL_STORE = [];
 
 function maskUrls(text) {
   return text.replace(URL_REGEX, match => {
