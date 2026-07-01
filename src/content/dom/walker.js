@@ -156,7 +156,7 @@ function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCa
       return `${match} (${converted.value.toFixed(2)} ${converted.unit})/*converted*/`;
     }
 
-    // TODO: remove this after currency converion is complete
+    // TODO: remove this after currency conversion is complete
     text = text.replace(CURRENCY_REGEX, match => `__CURRENCY_${match}__`);
 
     for (const converter of CONVERTERS) {
@@ -166,7 +166,7 @@ function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCa
       text = text.replace(regex, handleReplaceText(converter));
     }
     
-    // TODO: remove this after currency converion is complete
+    // TODO: remove this after currency conversion is complete
     text = text.replace(/__CURRENCY_(.*?)__/g, (m, original) => original);
     text = unmaskUrls(text);
 

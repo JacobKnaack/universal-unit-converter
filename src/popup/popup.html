@@ -97,12 +97,63 @@
       height: 18px;
     }
 
-    #result {
-      margin-top: 12px;
-      font-weight: 600;
-      font-size: 0.95rem;
+    /* Utility alignment for the manual section */
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    .conversion-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .field-half {
+      flex: 1;
+      min-width: 0; /* Prevents select dropdowns from overflowing */
+    }
+
+    /* Compact Swap Button styling */
+    #swapUnitsBtn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      margin-top: 0;
+      margin-bottom: 2px; /* Visual alignment with select inputs */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.4);
       color: var(--text);
-      min-height: 20px;
+      border: 1px solid var(--glass-border);
+      font-size: 1.1rem;
+    }
+
+    #swapUnitsBtn:hover {
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Real-time result panel */
+    .result-display {
+      margin-top: 14px;
+      padding: 12px;
+      background: rgba(37, 99, 235, 0.1); /* Subtle accent tint */
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+      display: flex;
+      gap: 4px;
+      align-items: baseline;
+      word-break: break-all;
+    }
+
+    #resultUnit {
+      font-size: 0.85rem;
+      color: #57606a; /* Muted label color */
+      font-weight: 500;
     }
   </style>
 </head>
@@ -157,29 +208,49 @@
   <div class="card">
     <h2>Manual Conversion</h2>
 
-    <label for="manualCategory">Category:</label>
-    <select id="manualCategory">
-      <option value="length">Length</option>
-      <option value="temperature">Temperature</option>
-      <option value="mass">Mass</option>
-      <option value="area">Area</option>
-      <option value="volume">Volume</option>
-      <option value="velocity">Velocity</option>
-      <option value="css">CSS Units</option>
-    </select>
+    <div class="form-group">
+      <label for="manualCategory">Category</label>
+      <select id="manualCategory">
+        <option value="length">Length</option>
+        <option value="temperature">Temperature</option>
+        <option value="mass">Mass</option>
+        <option value="area">Area</option>
+        <option value="volume">Volume</option>
+        <option value="velocity">Velocity</option>
+        <option value="css">CSS Units</option>
+      </select>
+    </div>
 
-    <label for="manualFrom">From Unit:</label>
-    <select id="manualFrom"></select>
+    <div class="conversion-row">
+      <div class="field-half">
+        <label for="manualFrom">From</label>
+        <select id="manualFrom"></select>
+      </div>
 
-    <label for="manualTo">To Unit:</label>
-    <select id="manualTo"></select>
+      <button id="swapUnitsBtn" type="button" title="Swap Units" aria-label="Swap units">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m17 2 4 4-4 4"></path>
+          <path d="M3 6h18"></path>
+          <path d="m7 22-4-4 4-4"></path>
+          <path d="M21 18H3"></path>
+        </svg>
+      </button>
 
-    <label for="manualValue">Value:</label>
-    <input id="manualValue" placeholder="Enter a number">
+      <div class="field-half">∏
+        <label for="manualTo">To</label>
+        <select id="manualTo"></select>
+      </div>
+    </div>
 
-    <button id="manualConvertBtn">Convert</button>
+    <div class="form-group" style="margin-top: 12px;">
+      <label for="manualValue">Value</label>
+      <input id="manualValue" type="number" inputmode="decimal" placeholder="0">
+    </div>
 
-    <div id="result"></div>
+    <div id="resultCard" class="result-display">
+      <span id="resultValue">0</span>
+      <span id="resultUnit"></span>
+    </div>
   </div>
 
   <script src="assets/popup.js"></script>

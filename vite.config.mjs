@@ -32,6 +32,15 @@ export default defineConfig({
     }
   },
   plugins: [
+    {
+      name: "watch-static-files",
+      buildStart() {
+        this.addWatchFile(resolve(__dirname, "manifest.json"));
+        this.addWatchFile(resolve(__dirname, "src/popup/popup.html"));
+        this.addWatchFile(resolve(__dirname, "src/options/options.html"));
+        this.addWatchFile(resolve(__dirname, "assets/icons/favicon.png"));
+      }
+    },
     viteStaticCopy({
       targets: [
         { src: "manifest.json", dest: "." },

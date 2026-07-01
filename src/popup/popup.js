@@ -48,8 +48,9 @@ const manualCategory = document.getElementById("manualCategory");
 const manualFrom = document.getElementById("manualFrom");
 const manualTo = document.getElementById("manualTo");
 const manualValue = document.getElementById("manualValue");
-const manualConvertBtn = document.getElementById("manualConvertBtn");
-const result = document.getElementById("result");
+const swapUnitsBtn = document.getElementById("swapUnitsBtn");
+const resultValue = document.getElementById("resultValue");
+const resultUnit = document.getElementById("resultUnit");
 
 /* -----------------------------
    SETTINGS LOADING
@@ -141,16 +142,14 @@ function populateUnitDropdowns(category) {
     manualTo.appendChild(opt2);
   });
 
-  // Default: from first unit → to second unit
+  // Default: from first unit to second unit
   if (units.length > 1) {
     manualTo.value = units[1];
   }
 }
 
-// Initialize dropdowns on load
 populateUnitDropdowns(manualCategory.value);
 
-// Update when category changes
 manualCategory.addEventListener("change", () => {
   populateUnitDropdowns(manualCategory.value);
 });
@@ -193,19 +192,51 @@ function convertManual(category, value, fromUnit, toUnit) {
   }
 }
 
-manualConvertBtn.addEventListener("click", () => {
+/* -----------------------------
+   REAL-TIME MANUAL CONVERSION LOGIC
+----------------------------- */
+
+function handleLiveConversion() {
   const category = manualCategory.value;
   const fromUnit = manualFrom.value;
   const toUnit = manualTo.value;
   const value = manualValue.value.trim();
 
-  const output = convertManual(category, value, fromUnit, toUnit);
-
-  if (!output) {
-    result.textContent = "Conversion not supported.";
+  if (value === "") {
+    console.log('No input value provided. Resetting result display:', resultValue, resultUnit);
+    resultValue.textContent = "0";
+    resultUnit.textContent = fromUnit;
     return;
   }
 
-  // All converter functions return { value, unit }
-  result.textContent = `${value} ${fromUnit} = ${output.value.toFixed(4)} ${output.unit}`;
+  const output = convertManual(category, value, fromUnit, toUnit);
+
+  if (!output || isNaN(output.value)) {
+    resultValue.textContent = "Invalid entry";
+    resultUnit.textContent = "";
+    return;
+  }
+
+  resultValue.textContent = output.value.toFixed(4).replace(/\.?0+$/, ""); // Trims trailing zeros clean
+  resultUnit.textContent = output.unit;
+}
+
+manualValue.addEventListener("input", handleLiveConversion);
+manualFrom.addEventListener("change", handleLiveConversion);
+manualTo.addEventListener("change", handleLiveConversion);
+
+manualCategory.addEventListener("change", () => {
+  populateUnitDropdowns(manualCategory.value);
+  handleLiveConversion();
 });
+
+swapUnitsBtn.addEventListener("click", () => {
+  const currentFrom = manualFrom.value;
+  manualFrom.value = manualTo.value;
+  manualTo.value = currentFrom;
+
+  handleLiveConversion();
+});
+
+// Run a starting calculation loop once on popup load
+handleLiveConversion();
