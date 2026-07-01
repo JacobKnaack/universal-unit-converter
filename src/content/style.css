@@ -16,7 +16,8 @@
   color: #fff;
   font-size: 1.1rem;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: pre;
+  text-align: center;
   border-radius: 4px;
   z-index: 2147483647;
   pointer-events: none;

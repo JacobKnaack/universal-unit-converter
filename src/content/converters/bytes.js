@@ -41,15 +41,15 @@ const BYTES_TO_DATA_SIZE = {
 };
 
 const DATA_SIZE_TARGET_UNITS = {
-  b: "kb",
-  kib: "kb",
-  mib: "mb",
-  gib: "gb",
-  tib: "tb",
-  kb: "kib",
-  mb: "mib",
-  gb: "gib",
-  tb: "tib",
+  b: ["kb"],
+  kb: ["kib", "b", "mb"],
+  mb: ["mib", "kb", "gb"],
+  gb: ["gib", "mb", "tb"],
+  tb: ["tib", "gb"],
+  kib: ["kb", "b", "mib"],
+  mib: ["mb", "kib", "gib"],
+  gib: ["gb", "mib", "tib"],
+  tib: ["tb", "gib"],
 };
 
 function convertBytes(value, fromUnit, toUnit) {

@@ -108,21 +108,40 @@ describe("Data Size Converter", () => {
   // TARGET UNIT MAP
   // -----------------------------
   it("maps plain bytes to kb", () => {
-    expect(DATA_SIZE_TARGET_UNITS["b"]).toBe("kb");
+    expect(DATA_SIZE_TARGET_UNITS["b"]).toEqual(["kb"]);
 
-    const result = convertBytes(512, "b", DATA_SIZE_TARGET_UNITS["b"]);
+    const result = convertBytes(512, "b", DATA_SIZE_TARGET_UNITS["b"][0]);
     expect(result.value).toBeCloseTo(0.512);
     expect(result.unit).toBe("kb");
   });
 
-  it("maps to metric target units", () => {
-    expect(DATA_SIZE_TARGET_UNITS["gib"]).toBe("gb");
-    expect(DATA_SIZE_TARGET_UNITS["mib"]).toBe("mb");
+  it("maps to metric target units, plus binary neighbors above and below", () => {
+    expect(DATA_SIZE_TARGET_UNITS["gib"]).toEqual(["gb", "mib", "tib"]);
+    expect(DATA_SIZE_TARGET_UNITS["mib"]).toEqual(["mb", "kib", "gib"]);
   });
 
-  it("maps to binary target units", () => {
-    expect(DATA_SIZE_TARGET_UNITS["gb"]).toBe("gib");
-    expect(DATA_SIZE_TARGET_UNITS["mb"]).toBe("mib");
+  it("maps to binary target units, plus metric neighbors above and below", () => {
+    expect(DATA_SIZE_TARGET_UNITS["gb"]).toEqual(["gib", "mb", "tb"]);
+    expect(DATA_SIZE_TARGET_UNITS["mb"]).toEqual(["mib", "kb", "gb"]);
+  });
+
+  it("omits the missing side at the top and bottom of each ladder", () => {
+    // "b" is the smallest unit — no unit below it
+    expect(DATA_SIZE_TARGET_UNITS["b"]).toEqual(["kb"]);
+
+    // "tb"/"tib" are the largest units — no unit above them
+    expect(DATA_SIZE_TARGET_UNITS["tb"]).toEqual(["tib", "gb"]);
+    expect(DATA_SIZE_TARGET_UNITS["tib"]).toEqual(["tb", "gib"]);
+  });
+
+  it("converts to every target for a unit with neighbors on both sides", () => {
+    const targets = DATA_SIZE_TARGET_UNITS["mb"];
+    const results = targets.map((to) => convertBytes(1, "mb", to));
+
+    expect(results.map((r) => r.unit)).toEqual(["mib", "kb", "gb"]);
+    expect(results[0].value).toBeCloseTo(0.9537, 4); // mb -> mib
+    expect(results[1].value).toBeCloseTo(1000);        // mb -> kb
+    expect(results[2].value).toBeCloseTo(0.001);        // mb -> gb
   });
 
   // -----------------------------

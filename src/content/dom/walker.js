@@ -18,7 +18,7 @@ const UNIT_CLASS = "uuc-unit";
 const MARKER_OPEN = "@@UUC_OPEN@@";
 const MARKER_SEP = "@@UUC_SEP@@";
 const MARKER_CLOSE = "@@UUC_CLOSE@@";
-const MARKER_REGEX = /@@UUC_OPEN@@(.*?)@@UUC_SEP@@(.*?)@@UUC_CLOSE@@/g;
+const MARKER_REGEX = /@@UUC_OPEN@@(.*?)@@UUC_SEP@@(.*?)@@UUC_CLOSE@@/gs;
 
 const CONVERTERS = [
   { 
@@ -136,6 +136,14 @@ function disableConversion(converter) {
   revertAllConvertedText(converter.textMap);
 }
 
+function formatConvertedValue(value) {
+  const fixed = value.toFixed(2);
+  if (value !== 0 && parseFloat(fixed) === 0) {
+    return value.toFixed(3);
+  }
+  return fixed;
+}
+
 function buildConvertedFragment(text) {
   const fragment = document.createDocumentFragment();
   let lastIndex = 0;
@@ -193,14 +201,22 @@ function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCa
       const normalized = converter.normalize ? converter.normalize(from) : from;
       if (!normalized) return match;
 
-      const to = converter.getTarget ? converter.getTarget(normalized) : null;
-      if (!to) return match;
+      const targets = converter.getTarget ? converter.getTarget(normalized) : null;
+      if (!targets || !targets.length) return match;
 
-      const converted = converter.convert(parseFloat(num.replace(/,/g, '')), normalized, to);
-      if (!converted) return match;
+      const value = parseFloat(num.replace(/,/g, ''));
+      const conversions = targets
+        .map((to) => converter.convert(value, normalized, to))
+        .filter(Boolean);
+
+      if (!conversions.length) return match;
 
       changed = true;
-      return `${MARKER_OPEN}${match}${MARKER_SEP}${converted.value.toFixed(2)} ${converted.unit}${MARKER_CLOSE}`;
+      const tooltip = conversions
+        .map((converted) => `${formatConvertedValue(converted.value)} ${converted.unit}`)
+        .join("\n");
+
+      return `${MARKER_OPEN}${match}${MARKER_SEP}${tooltip}${MARKER_CLOSE}`;
     }
 
     // TODO: remove this after currency conversion is complete

@@ -10,8 +10,8 @@ const NORMALIZE_TEMP = {
 };
 
 const TEMPERATURE_TARGET_UNITS = {
-  C: "F",
-  F: "C",
+  C: ["F"],
+  F: ["C"],
 };
 
 function convertTemperature(value, fromUnit, toUnit) {

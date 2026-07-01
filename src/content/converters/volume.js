@@ -51,12 +51,12 @@ const M3_TO_UNIT = {
 };
 
 const VOLUME_TARGET_UNITS = {
-  ml: "fl oz",
-  l: "gal",
-  "m³": "ft³",
-  "fl oz": "ml",
-  gal: "l",
-  "ft³": "m³",
+  ml: ["fl oz"],
+  l: ["gal"],
+  "m³": ["ft³"],
+  "fl oz": ["ml"],
+  gal: ["l"],
+  "ft³": ["m³"],
 };
 
 function convertVolume(value, fromUnit, toUnit) {

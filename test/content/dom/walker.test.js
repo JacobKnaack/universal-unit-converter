@@ -41,14 +41,25 @@ describe("walkAndConvert()", () => {
     expect(span.dataset.tooltip).toMatch(/^\d+\.\d{2} lb$/);
   });
 
-  it("converts data size units", () => {
+  it("converts data size units to the binary crossover plus neighbors above and below", () => {
     document.body.innerHTML = `<p>The download is 512 KB in size.</p>`;
 
     walkAndConvert(document.body, undefined);
 
     const span = document.querySelector(".uuc-unit");
     expect(span.textContent).toBe("512 KB");
-    expect(span.dataset.tooltip).toMatch(/^500\.00 kib$/);
+    expect(span.dataset.tooltip).toBe("500.00 kib\n512000.00 b\n0.51 mb");
+  });
+
+  it("falls back to 3 decimal places when a conversion rounds to 0.00", () => {
+    document.body.innerHTML = `<p>The video is 2.5 GB.</p>`;
+
+    walkAndConvert(document.body, undefined);
+
+    const span = document.querySelector(".uuc-unit");
+    expect(span.textContent).toBe("2.5 GB");
+    // gb -> tb (0.0025) would round to "0.00" at 2 decimals, so it gets a 3rd
+    expect(span.dataset.tooltip).toBe("2.33 gib\n2500.00 mb\n0.003 tb");
   });
 
   it("wraps the converted text with a purple-underline span and a tooltip attribute", () => {

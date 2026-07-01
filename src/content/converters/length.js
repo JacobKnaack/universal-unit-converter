@@ -23,14 +23,14 @@ const METERS_TO_UNIT = {
 };
 
 const LENGTH_TARGET_UNITS = {
-  mm: "in",
-  cm: "in",
-  m: "ft",
-  km: "mi",
-  in: "cm",
-  ft: "m",
-  yd: "m",
-  mi: "km",
+  mm: ["in"],
+  cm: ["in"],
+  m: ["ft"],
+  km: ["mi"],
+  in: ["cm"],
+  ft: ["m"],
+  yd: ["m"],
+  mi: ["km"],
 };
 
 function convertLength(value, fromUnit, toUnit) {
