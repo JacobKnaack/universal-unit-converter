@@ -14,16 +14,9 @@ function getWindowDistance(element) {
   const viewportHeight = window.innerHeight;
 
   return {
-    // Distance from top of element to top of viewport
     top: Math.max(0, rect.top),
-
-    // Distance from left of element to left of viewport
     left: Math.max(0, rect.left),
-
-    // Distance from bottom of element to bottom of viewport
     bottom: Math.max(0, viewportHeight - rect.bottom),
-
-    // Distance from right of element to right of viewport
     right: Math.max(0, viewportWidth - rect.right)
   };
 }

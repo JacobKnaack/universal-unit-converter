@@ -1,29 +1,46 @@
 .uuc-unit {
   border-bottom: 1px solid purple;
   cursor: help;
-  position: relative;
 }
 
-.uuc-unit:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  margin-bottom: 4px;
-  padding: 4px 8px;
+/* Position (top/left) is computed and applied in JS, since the tooltip is a
+   single shared element appended to <body>, not nested inside each span. */
+.uuc-tooltip {
+  display: none;
+  position: fixed;
+  padding: 4px;
   background: #2b2b2b;
-  color: #fff;
-  font-size: 1.1rem;
-  line-height: 1.2;
-  white-space: pre;
-  text-align: left;
   border-radius: 4px;
   z-index: 2147483647;
   pointer-events: none;
+  grid-template-columns: max-content max-content;
+  column-gap: 1px;
+  row-gap: 1px;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  color: #fff;
 }
 
-/* Applied via JS when the tooltip would overflow the viewport's right edge */
-.uuc-unit.uuc-flip:hover::after {
-  left: auto;
-  right: -1rem;
+.uuc-tooltip-row {
+  display: contents;
+}
+
+.uuc-tooltip-value,
+.uuc-tooltip-unit {
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+
+.uuc-tooltip-value {
+  text-align: right;
+}
+
+.uuc-tooltip-unit {
+  text-align: left;
+}
+
+/* Alternate row backgrounds: odd rows blend with the tooltip's own
+   background, even rows get a slightly lighter shade. */
+.uuc-tooltip-row:nth-child(even) > * {
+  background: #3a3a3a;
 }

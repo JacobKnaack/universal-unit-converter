@@ -15,7 +15,11 @@ import getWindowDistance from "../utility/getWindowDistance.js";
 
 const WRAPPER_CLASS = "uuc-text-wrapper";
 const UNIT_CLASS = "uuc-unit";
-const FLIP_CLASS = "uuc-flip";
+const TOOLTIP_CLASS = "uuc-tooltip";
+const TOOLTIP_ROW_CLASS = "uuc-tooltip-row";
+const TOOLTIP_VALUE_CLASS = "uuc-tooltip-value";
+const TOOLTIP_UNIT_CLASS = "uuc-tooltip-unit";
+const CONVERSIONS_ATTR = "conversions";
 
 const MARKER_OPEN = "@@UUC_OPEN@@";
 const MARKER_SEP = "@@UUC_SEP@@";
@@ -26,16 +30,73 @@ function shouldFlipTooltip(distance, tooltipWidth) {
   return distance - tooltipWidth < 0;
 }
 
-// Flip the tooltip to grow leftward (anchored to the span's right edge)
-// instead of rightward whenever it would otherwise overflow the viewport.
+// A single shared tooltip element, appended directly to <body> rather than
+// nested inside each .uuc-unit span. Nesting it would make its (hidden) text
+// part of the span's — and therefore the page's — textContent.
+let tooltipEl = null;
+
+function getTooltipEl() {
+  if (!tooltipEl || !document.body.contains(tooltipEl)) {
+    tooltipEl = document.createElement("div");
+    tooltipEl.className = TOOLTIP_CLASS;
+    tooltipEl.setAttribute("role", "tooltip");
+    tooltipEl.style.display = "none";
+    document.body.appendChild(tooltipEl);
+  }
+  return tooltipEl;
+}
+
+function renderTooltipRows(tooltip, conversions) {
+  tooltip.replaceChildren(
+    ...conversions.map(({ value, unit }) => {
+      const row = document.createElement("div");
+      row.className = TOOLTIP_ROW_CLASS;
+
+      const valueEl = document.createElement("span");
+      valueEl.className = TOOLTIP_VALUE_CLASS;
+      valueEl.textContent = formatConvertedValue(value);
+
+      const unitEl = document.createElement("span");
+      unitEl.className = TOOLTIP_UNIT_CLASS;
+      unitEl.textContent = unit;
+
+      row.append(valueEl, unitEl);
+      return row;
+    })
+  );
+}
+
+// Anchored above the span; flips to grow leftward from the span's right
+// edge instead of rightward whenever it would otherwise overflow the
+// viewport.
+function positionTooltip(tooltip, span) {
+  const spanRect = span.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const { right } = getWindowDistance(span);
+
+  tooltip.style.top = `${spanRect.top - tooltipRect.height - 4}px`;
+  tooltip.style.left = shouldFlipTooltip(right, tooltipRect.width)
+    ? `${spanRect.right - tooltipRect.width}px`
+    : `${spanRect.left}px`;
+}
+
 document.addEventListener("mouseover", (event) => {
   const span = event.target.closest?.(`.${UNIT_CLASS}`);
-  if (!span) return;
+  if (!span?.dataset[CONVERSIONS_ATTR]) return;
 
-  const { right } = getWindowDistance(span);
-  const tooltipWidth = parseFloat(getComputedStyle(span, "::after").width) || 0;
+  const tooltip = getTooltipEl();
+  renderTooltipRows(tooltip, JSON.parse(span.dataset[CONVERSIONS_ATTR]));
+  tooltip.style.display = "grid";
+  positionTooltip(tooltip, span);
+});
 
-  span.classList.toggle(FLIP_CLASS, shouldFlipTooltip(right, tooltipWidth));
+document.addEventListener("mouseout", (event) => {
+  if (!tooltipEl) return;
+
+  const span = event.target.closest?.(`.${UNIT_CLASS}`);
+  if (!span || span.contains(event.relatedTarget)) return;
+
+  tooltipEl.style.display = "none";
 });
 
 const CONVERTERS = [
@@ -154,12 +215,16 @@ function disableConversion(converter) {
   revertAllConvertedText(converter.textMap);
 }
 
+// Formats using the user's own locale (comma vs. period grouping/decimal
+// separators). Falls back to 3 fraction digits when 2 would round to "0.00"
+// for a genuinely non-zero value.
 function formatConvertedValue(value) {
-  const fixed = value.toFixed(2);
-  if (value !== 0 && parseFloat(fixed) === 0) {
-    return value.toFixed(3);
-  }
-  return fixed;
+  const fractionDigits = (value !== 0 && Math.round(value * 100) / 100 === 0) ? 3 : 2;
+
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(value);
 }
 
 function buildConvertedFragment(text) {
@@ -169,7 +234,7 @@ function buildConvertedFragment(text) {
 
   MARKER_REGEX.lastIndex = 0;
   while ((match = MARKER_REGEX.exec(text))) {
-    const [full, matchText, tooltip] = match;
+    const [full, matchText, conversionsJson] = match;
 
     if (match.index > lastIndex) {
       fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
@@ -177,8 +242,8 @@ function buildConvertedFragment(text) {
 
     const span = document.createElement("span");
     span.className = UNIT_CLASS;
-    span.dataset.tooltip = tooltip;
     span.textContent = matchText;
+    span.dataset[CONVERSIONS_ATTR] = conversionsJson;
     fragment.appendChild(span);
 
     lastIndex = match.index + full.length;
@@ -230,11 +295,11 @@ function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCa
       if (!conversions.length) return match;
 
       changed = true;
-      const tooltip = conversions
-        .map((converted) => `${formatConvertedValue(converted.value)} ${converted.unit}`)
-        .join("\n");
+      const conversionsJson = JSON.stringify(
+        conversions.map(({ value, unit }) => ({ value, unit }))
+      );
 
-      return `${MARKER_OPEN}${match}${MARKER_SEP}${tooltip}${MARKER_CLOSE}`;
+      return `${MARKER_OPEN}${match}${MARKER_SEP}${conversionsJson}${MARKER_CLOSE}`;
     }
 
     // TODO: remove this after currency conversion is complete
@@ -268,4 +333,5 @@ export {
   enableConversion,
   disableConversion,
   defaultCategories,
+  shouldFlipTooltip,
 }

@@ -14,6 +14,17 @@ function unitSpan() {
   return document.querySelector(".uuc-unit");
 }
 
+// The tooltip is a single shared element appended to <body> and populated
+// on hover, not nested inside each .uuc-unit span.
+function firstTooltipRow(span) {
+  span.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  const row = document.querySelector(".uuc-tooltip-row");
+  return {
+    value: row.querySelector(".uuc-tooltip-value").textContent,
+    unit: row.querySelector(".uuc-tooltip-unit").textContent,
+  };
+}
+
 describe("auto-convert toggle behavior", () => {
   it("converts text when enableConversion is called", () => {
     document.body.innerHTML = `<p>10 cm</p>`;
@@ -24,7 +35,7 @@ describe("auto-convert toggle behavior", () => {
     const span = unitSpan();
     expect(span).not.toBeNull();
     expect(span.textContent).toBe("10 cm");
-    expect(span.dataset.tooltip).toMatch(/in$/);
+    expect(firstTooltipRow(span).unit).toBe("in");
   });
 
   it("reverts text when disableConversion is called", () => {
@@ -46,7 +57,9 @@ describe("auto-convert toggle behavior", () => {
 
     const span = unitSpan();
     expect(span.textContent).toBe("16px");
-    expect(span.dataset.tooltip).toMatch(/^1(\.00)?\s*rem$/);
+    const row = firstTooltipRow(span);
+    expect(row.value).toMatch(/^1(\.00)?$/);
+    expect(row.unit).toBe("rem");
   });
 
   it("converts CSS units from rem to pixels when enableConversion is called", () => {
@@ -57,7 +70,9 @@ describe("auto-convert toggle behavior", () => {
 
     const span = unitSpan();
     expect(span.textContent).toBe("2rem");
-    expect(span.dataset.tooltip).toMatch(/^32(\.00)?\s*px$/);
+    const row = firstTooltipRow(span);
+    expect(row.value).toMatch(/^32(\.00)?$/);
+    expect(row.unit).toBe("px");
   });
 
   it("reverts CSS unit conversion when disableConversion is called", () => {
@@ -87,7 +102,9 @@ describe("auto-convert toggle behavior", () => {
     // 10vh = 10% of 900px = 90px
     const span = unitSpan();
     expect(span.textContent).toBe("10vh");
-    expect(span.dataset.tooltip).toMatch(/^90(\.00)?\s*px$/);
+    const row = firstTooltipRow(span);
+    expect(row.value).toMatch(/^90(\.00)?$/);
+    expect(row.unit).toBe("px");
   });
 
   it("converts vw to pixels when enableConversion is called", () => {
@@ -106,7 +123,9 @@ describe("auto-convert toggle behavior", () => {
     // 25vw = 25% of 1200px = 300px
     const span = unitSpan();
     expect(span.textContent).toBe("25vw");
-    expect(span.dataset.tooltip).toMatch(/^300(\.00)?\s*px$/);
+    const row = firstTooltipRow(span);
+    expect(row.value).toMatch(/^300(\.00)?$/);
+    expect(row.unit).toBe("px");
   });
 
   it("does not collide with length, velocity, or other unit types", () => {
@@ -153,7 +172,7 @@ describe("auto-convert toggle behavior", () => {
 
     const span = unitSpan();
     expect(span.textContent).toBe("20 m²");
-    const [value, unit] = span.dataset.tooltip.split(" ");
+    const { value, unit } = firstTooltipRow(span);
     expect(parseFloat(value)).toBeCloseTo(215.28, 1);
     expect(unit).toMatch(/ft2/i);
   });
@@ -169,8 +188,8 @@ describe("auto-convert toggle behavior", () => {
 
     const span = unitSpan();
     expect(span.textContent).toBe("5000 m2");
-    const [value, unit] = span.dataset.tooltip.split(" ");
-    expect(parseFloat(value)).toBeCloseTo(53819.55, 1);
+    const { value, unit } = firstTooltipRow(span);
+    expect(parseFloat(value.replace(/,/g, ""))).toBeCloseTo(53819.55, 1);
     expect(unit).toMatch(/ft2/i);
   });
 
@@ -233,7 +252,7 @@ describe("auto-convert toggle behavior", () => {
     );
 
     const span = unitSpan();
-    const [value] = span.dataset.tooltip.split(" ");
+    const { value } = firstTooltipRow(span);
     expect(parseFloat(value)).toBeCloseTo(62.4279, 2);
   });
 
@@ -249,7 +268,7 @@ describe("auto-convert toggle behavior", () => {
     // 1 g/cm³ ≈ 0.036127 lb/in³
     const span = unitSpan();
     expect(span.textContent).toBe("1 g/cm3");
-    expect(span.dataset.tooltip).toMatch(/^0\.04/);
+    expect(firstTooltipRow(span).value).toMatch(/^0\.04/);
   });
 
   it("reverts density conversions when disableConversion is called", () => {

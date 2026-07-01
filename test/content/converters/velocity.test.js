@@ -2,10 +2,17 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { walkAndConvert, revertAllConvertedText } from "@/content/dom/walker.js";
 import { VELOCITY_REGEX } from "@/content/converters/velocity.js";
 
+// The tooltip is a single shared element appended to <body> and populated
+// on hover, not nested inside each .uuc-unit span, so hover each in turn.
 function tooltipsByMatch() {
   const spans = document.querySelectorAll(".uuc-unit");
   return Array.from(spans).reduce((acc, s) => {
-    acc[s.textContent] = s.dataset.tooltip;
+    s.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    const row = document.querySelector(".uuc-tooltip-row");
+    acc[s.textContent] = {
+      value: row.querySelector(".uuc-tooltip-value").textContent,
+      unit: row.querySelector(".uuc-tooltip-unit").textContent,
+    };
     return acc;
   }, {});
 }
@@ -33,13 +40,16 @@ describe("Speed conversion", () => {
     const byMatch = tooltipsByMatch();
 
     // m/s → mph
-    expect(byMatch["10 m/s"]).toMatch(/^\d+(\.\d+)? mph$/);
+    expect(byMatch["10 m/s"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["10 m/s"].unit).toBe("mph");
 
     // km/h → mph
-    expect(byMatch["100 km/h"]).toMatch(/^\d+(\.\d+)? mph$/);
+    expect(byMatch["100 km/h"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["100 km/h"].unit).toBe("mph");
 
     // mps → mph (ASCII fallback)
-    expect(byMatch["12 mps"]).toMatch(/^\d+(\.\d+)? mph$/);
+    expect(byMatch["12 mps"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["12 mps"].unit).toBe("mph");
   });
 
   it("converts imperial → metric speed units", () => {
@@ -48,13 +58,16 @@ describe("Speed conversion", () => {
     const byMatch = tooltipsByMatch();
 
     // mph → km/h
-    expect(byMatch["30 mph"]).toMatch(/^\d+(\.\d+)? km\/h$/);
+    expect(byMatch["30 mph"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["30 mph"].unit).toBe("km/h");
 
     // ft/s → m/s
-    expect(byMatch["50 ft/s"]).toMatch(/^\d+(\.\d+)? m\/s$/);
+    expect(byMatch["50 ft/s"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["50 ft/s"].unit).toBe("m/s");
 
     // fps → m/s (ASCII fallback)
-    expect(byMatch["40 fps"]).toMatch(/^\d+(\.\d+)? m\/s$/);
+    expect(byMatch["40 fps"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["40 fps"].unit).toBe("m/s");
   });
 
   it("stores original text in the map", () => {
