@@ -39,6 +39,7 @@ export default defineConfig({
         this.addWatchFile(resolve(__dirname, "src/popup/popup.html"));
         this.addWatchFile(resolve(__dirname, "src/options/options.html"));
         this.addWatchFile(resolve(__dirname, "assets/icons/favicon.png"));
+        this.addWatchFile(resolve(__dirname, "src/content/style.css"));
       }
     },
     viteStaticCopy({
@@ -46,7 +47,8 @@ export default defineConfig({
         { src: "manifest.json", dest: "." },
         { src: "src/popup/popup.html", dest: "." },
         { src: "src/options/options.html", dest: "." },
-        { src: "assets/icons/favicon.png", dest: "." }
+        { src: "assets/icons/favicon.png", dest: "." },
+        { src: "src/content/style.css", dest: "assets" }
       ]
     })
   ]

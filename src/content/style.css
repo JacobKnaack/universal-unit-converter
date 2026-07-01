@@ -1,0 +1,23 @@
+.uuc-unit {
+  border-bottom: 1px solid purple;
+  cursor: help;
+  position: relative;
+}
+
+.uuc-unit:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  background: #2b2b2b;
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  border-radius: 4px;
+  z-index: 2147483647;
+  pointer-events: none;
+}

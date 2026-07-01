@@ -13,6 +13,7 @@
     {
       "matches": ["<all_urls>"],
       "js": ["assets/content.js"],
+      "css": ["assets/style.css"],
       "run_at": "document_idle"
     }
   ],

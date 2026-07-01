@@ -11,7 +11,13 @@ import {
  } from "../converters/index.js";
 import { maskUrls, unmaskUrls } from "../utility/urls.js";
 
-const ALREADY_CONVERTED_REGEX = /\(\s*\d+(\.\d+)?\s*(cm|mm|km|in|ft|yd|mi|g|kg|lb|oz|c|f|px|rem|em|mph|km\/h|m\/s|ft\/s)\s*\)/i;
+const WRAPPER_CLASS = "uuc-text-wrapper";
+const UNIT_CLASS = "uuc-unit";
+
+const MARKER_OPEN = "@@UUC_OPEN@@";
+const MARKER_SEP = "@@UUC_SEP@@";
+const MARKER_CLOSE = "@@UUC_CLOSE@@";
+const MARKER_REGEX = /@@UUC_OPEN@@(.*?)@@UUC_SEP@@(.*?)@@UUC_CLOSE@@/g;
 
 const CONVERTERS = [
   { 
@@ -81,8 +87,8 @@ const defaultCategories = {
 }
 
 function revertAllConvertedText(textMap) {
-  for (const [node, original] of textMap.entries()) {
-    node.nodeValue = original;
+  for (const [wrapper, original] of textMap.entries()) {
+    wrapper.replaceWith(document.createTextNode(original));
   }
   textMap.clear();
 }
@@ -102,7 +108,7 @@ function enableConversion(converter, enabledCategories = defaultCategories) {
   converter.observer = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.nodeType === Node.ELEMENT_NODE && !node.classList.contains(WRAPPER_CLASS)) {
           walkAndConvert(node, converter.textMap, enabledCategories);
         }
       });
@@ -121,20 +127,52 @@ function disableConversion(converter) {
   revertAllConvertedText(converter.textMap);
 }
 
+function buildConvertedFragment(text) {
+  const fragment = document.createDocumentFragment();
+  let lastIndex = 0;
+  let match;
+
+  MARKER_REGEX.lastIndex = 0;
+  while ((match = MARKER_REGEX.exec(text))) {
+    const [full, matchText, tooltip] = match;
+
+    if (match.index > lastIndex) {
+      fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+    }
+
+    const span = document.createElement("span");
+    span.className = UNIT_CLASS;
+    span.dataset.tooltip = tooltip;
+    span.textContent = matchText;
+    fragment.appendChild(span);
+
+    lastIndex = match.index + full.length;
+  }
+
+  if (lastIndex < text.length) {
+    fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
+
+  return fragment;
+}
+
 function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCategories) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
 
+  // Collect nodes before mutating: replacing the current node mid-traversal
+  // detaches it, which stops TreeWalker from finding its next sibling.
+  const textNodes = [];
   let node;
   while ((node = walker.nextNode())) {
-    const original = node.nodeValue;
+    textNodes.push(node);
+  }
 
-    if (ALREADY_CONVERTED_REGEX.test(original)) {
+  for (const node of textNodes) {
+    if (node.parentElement?.closest(`.${WRAPPER_CLASS}`)) {
       continue;
     }
 
-    if (!textMap.has(node)) {
-      textMap.set(node, original);
-    }
+    const original = node.nodeValue;
 
     let changed = false;
     let text = maskUrls(original);
@@ -153,7 +191,7 @@ function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCa
       if (!converted) return match;
 
       changed = true;
-      return `${match} (${converted.value.toFixed(2)} ${converted.unit})/*converted*/`;
+      return `${MARKER_OPEN}${match}${MARKER_SEP}${converted.value.toFixed(2)} ${converted.unit}${MARKER_CLOSE}`;
     }
 
     // TODO: remove this after currency conversion is complete
@@ -165,13 +203,18 @@ function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCa
 
       text = text.replace(regex, handleReplaceText(converter));
     }
-    
+
     // TODO: remove this after currency conversion is complete
     text = text.replace(/__CURRENCY_(.*?)__/g, (m, original) => original);
     text = unmaskUrls(text);
 
     if (changed) {
-      node.nodeValue = text.replace(/\/\*converted\*\//g, "");
+      const wrapper = document.createElement("span");
+      wrapper.className = WRAPPER_CLASS;
+      wrapper.appendChild(buildConvertedFragment(text));
+
+      node.replaceWith(wrapper);
+      textMap.set(wrapper, original);
     }
   }
 }

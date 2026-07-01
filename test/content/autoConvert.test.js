@@ -10,67 +10,65 @@ beforeEach(async () => {
   vi.resetModules();
 });
 
+function unitSpan() {
+  return document.querySelector(".uuc-unit");
+}
+
 describe("auto-convert toggle behavior", () => {
   it("converts text when enableConversion is called", () => {
     document.body.innerHTML = `<p>10 cm</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
-
-    map.set(node, node.nodeValue);
 
     enableConversion({ observer: null, textMap: map });
 
-    expect(node.nodeValue).toMatch(/\(.+in\)/);
+    const span = unitSpan();
+    expect(span).not.toBeNull();
+    expect(span.textContent).toBe("10 cm");
+    expect(span.dataset.tooltip).toMatch(/in$/);
   });
 
   it("reverts text when disableConversion is called", () => {
     document.body.innerHTML = `<p>10 cm</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
 
-    map.set(node, "10 cm");
-    node.nodeValue = "10 cm (3.94 in)";
-
+    enableConversion({ observer: null, textMap: map });
     disableConversion({ observer: null, textMap: map });
 
-    expect(node.nodeValue).toBe("10 cm");
+    expect(document.querySelector("p").textContent).toBe("10 cm");
+    expect(unitSpan()).toBeNull();
   });
 
   it("converts CSS units from pixels to rem when enableConversion is called", () => {
     document.body.innerHTML = `<p>16px</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
-
-    map.set(node, node.nodeValue);
 
     enableConversion({ observer: null, textMap: map });
 
-    expect(node.nodeValue).toMatch(/16px\s*\(\s*1(\.00)?\s*rem\)/);
+    const span = unitSpan();
+    expect(span.textContent).toBe("16px");
+    expect(span.dataset.tooltip).toMatch(/^1(\.00)?\s*rem$/);
   });
 
   it("converts CSS units from rem to pixels when enableConversion is called", () => {
     document.body.innerHTML = `<p>2rem</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
-
-    map.set(node, node.nodeValue);
 
     enableConversion({ observer: null, textMap: map });
 
-    expect(node.nodeValue).toMatch(/2rem\s*\(\s*32(\.00)?\s*px\)/);
+    const span = unitSpan();
+    expect(span.textContent).toBe("2rem");
+    expect(span.dataset.tooltip).toMatch(/^32(\.00)?\s*px$/);
   });
 
   it("reverts CSS unit conversion when disableConversion is called", () => {
     document.body.innerHTML = `<p>16px</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
 
-    map.set(node, "16px");
-    node.nodeValue = "16px (1.00 rem)";
-
+    enableConversion({ observer: null, textMap: map });
     disableConversion({ observer: null, textMap: map });
 
-    expect(node.nodeValue).toBe("16px");
+    expect(document.querySelector("p").textContent).toBe("16px");
+    expect(unitSpan()).toBeNull();
   });
 
   it("converts vh to pixels when enableConversion is called", () => {
@@ -82,15 +80,14 @@ describe("auto-convert toggle behavior", () => {
 
     document.body.innerHTML = `<p>10vh</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
-
-    map.set(node, node.nodeValue);
 
     // cssUnitSystem = "px" so vh → px
     enableConversion({ observer: null, textMap: map });
 
     // 10vh = 10% of 900px = 90px
-    expect(node.nodeValue).toMatch(/10vh\s*\(\s*90(\.00)?\s*px\)/);
+    const span = unitSpan();
+    expect(span.textContent).toBe("10vh");
+    expect(span.dataset.tooltip).toMatch(/^90(\.00)?\s*px$/);
   });
 
   it("converts vw to pixels when enableConversion is called", () => {
@@ -102,48 +99,40 @@ describe("auto-convert toggle behavior", () => {
 
     document.body.innerHTML = `<p>25vw</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
-
-    map.set(node, node.nodeValue);
 
     // cssUnitSystem = "px" so vw → px
     enableConversion({ observer: null, textMap: map });
 
     // 25vw = 25% of 1200px = 300px
-    expect(node.nodeValue).toMatch(/25vw\s*\(\s*300(\.00)?\s*px\)/);
+    const span = unitSpan();
+    expect(span.textContent).toBe("25vw");
+    expect(span.dataset.tooltip).toMatch(/^300(\.00)?\s*px$/);
   });
 
   it("does not collide with length, velocity, or other unit types", () => {
     document.body.innerHTML = `
       <p>
-        10 m/s  
-        50 ft/s  
-        3m  
-        10cm  
-        https://example.com/16px/image  
-        m3  
-        16px/s  
+        10 m/s
+        50 ft/s
+        3m
+        10cm
+        https://example.com/16px/image
+        m3
+        16px/s
       </p>
     `;
 
     const map = new Map();
     const node = document.querySelector("p").firstChild;
 
-    // Store original text
-    map.set(node, node.nodeValue);
-
-    // Enable conversion with cssUnitSystem = "rem"
+    // Enable conversion with an unrecognized category key — nothing should convert
     enableConversion({ observer: null, textMap: map }, { convertCSSUnit: true });
 
     const text = node.nodeValue;
 
-    // Should NOT convert any of these:
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*rem\)/); // no px→rem
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*px\)/);  // no rem→px
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*in\)/);  // no length conversion
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*mph\)/); // no velocity conversion
+    expect(unitSpan()).toBeNull();
 
-    // And ensure original text is still present
+    // Original text is still present, untouched
     expect(text).toContain("10 m/s");
     expect(text).toContain("50 ft/s");
     expect(text).toContain("3m");
@@ -156,44 +145,47 @@ describe("auto-convert toggle behavior", () => {
   it("converts area units when enableConversion is called", () => {
     document.body.innerHTML = `<p>20 m²</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
-
-    map.set(node, node.nodeValue);
 
     enableConversion(
       { observer: null, textMap: map },
       { convertArea: true }
     );
 
-    expect(node.nodeValue).toMatch(/20 m²\s*\(\s*215\.28(\s*ft²)?/i);
+    const span = unitSpan();
+    expect(span.textContent).toBe("20 m²");
+    const [value, unit] = span.dataset.tooltip.split(" ");
+    expect(parseFloat(value)).toBeCloseTo(215.28, 1);
+    expect(unit).toMatch(/ft2/i);
   });
 
   it("converts ASCII area units when enableConversion is called", () => {
     document.body.innerHTML = `<p>5000 m2</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
-
-    map.set(node, node.nodeValue);
 
     enableConversion(
       { observer: null, textMap: map },
       { convertArea: true }
     );
 
-    expect(node.nodeValue).toMatch(/5000 m2\s*\(\s*53819(\.\d+)?\s*ft2\)/i);
+    const span = unitSpan();
+    expect(span.textContent).toBe("5000 m2");
+    const [value, unit] = span.dataset.tooltip.split(" ");
+    expect(parseFloat(value)).toBeCloseTo(53819.55, 1);
+    expect(unit).toMatch(/ft2/i);
   });
 
   it("reverts area conversions when disableConversion is called", () => {
     document.body.innerHTML = `<p>20 m²</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
 
-    map.set(node, "20 m²");
-    node.nodeValue = "20 m² (215.28 ft²)";
-
+    enableConversion(
+      { observer: null, textMap: map },
+      { convertArea: true }
+    );
     disableConversion({ observer: null, textMap: map });
 
-    expect(node.nodeValue).toBe("20 m²");
+    expect(document.querySelector("p").textContent).toBe("20 m²");
+    expect(unitSpan()).toBeNull();
   });
 
   it("does not collide with length, velocity, CSS, or volume units", () => {
@@ -212,8 +204,6 @@ describe("auto-convert toggle behavior", () => {
     const map = new Map();
     const node = document.querySelector("p").firstChild;
 
-    map.set(node, node.nodeValue);
-
     enableConversion(
       { observer: null, textMap: map },
       { convertArea: true }
@@ -221,12 +211,7 @@ describe("auto-convert toggle behavior", () => {
 
     const text = node.nodeValue;
 
-    // Should NOT convert:
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*ft²\)/); // no area conversion inside composite units
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*in\)/);  // no length conversion
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*mph\)/); // no velocity conversion
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*px\)/);  // no CSS conversion
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*ft³\)/); // no volume conversion
+    expect(unitSpan()).toBeNull();
 
     // Original text still present
     expect(text).toContain("10 m/s");
@@ -241,24 +226,20 @@ describe("auto-convert toggle behavior", () => {
   it("converts density units when enableConversion is called", () => {
     document.body.innerHTML = `<p>1000 kg/m³</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
-
-    map.set(node, node.nodeValue);
 
     enableConversion(
       { observer: null, textMap: map },
       { convertDensity: true }
     );
 
-    expect(parseFloat(node.nodeValue.match(/(\d+\.\d+)/)[1])).toBeCloseTo(62.4279, 2);
+    const span = unitSpan();
+    const [value] = span.dataset.tooltip.split(" ");
+    expect(parseFloat(value)).toBeCloseTo(62.4279, 2);
   });
 
   it("converts ASCII density units when enableConversion is called", () => {
     document.body.innerHTML = `<p>1 g/cm3</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
-
-    map.set(node, node.nodeValue);
 
     enableConversion(
       { observer: null, textMap: map },
@@ -266,20 +247,23 @@ describe("auto-convert toggle behavior", () => {
     );
 
     // 1 g/cm³ ≈ 0.036127 lb/in³
-    expect(node.nodeValue).toMatch(/1 g\/cm3\s*\(\s*0\.04/i);
+    const span = unitSpan();
+    expect(span.textContent).toBe("1 g/cm3");
+    expect(span.dataset.tooltip).toMatch(/^0\.04/);
   });
 
   it("reverts density conversions when disableConversion is called", () => {
     document.body.innerHTML = `<p>1000 kg/m³</p>`;
     const map = new Map();
-    const node = document.querySelector("p").firstChild;
 
-    map.set(node, "1000 kg/m³");
-    node.nodeValue = "1000 kg/m³ (62.43 lb/ft³)";
-
+    enableConversion(
+      { observer: null, textMap: map },
+      { convertDensity: true }
+    );
     disableConversion({ observer: null, textMap: map });
 
-    expect(node.nodeValue).toBe("1000 kg/m³");
+    expect(document.querySelector("p").textContent).toBe("1000 kg/m³");
+    expect(unitSpan()).toBeNull();
   });
 
   it("does not collide with area, volume, velocity, or CSS units", () => {
@@ -298,8 +282,6 @@ describe("auto-convert toggle behavior", () => {
     const map = new Map();
     const node = document.querySelector("p").firstChild;
 
-    map.set(node, node.nodeValue);
-
     enableConversion(
       { observer: null, textMap: map },
       { convertDensity: true }
@@ -307,12 +289,8 @@ describe("auto-convert toggle behavior", () => {
 
     const text = node.nodeValue;
 
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*lb\/ft³\)/); // no composite density
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*lb\/in³\)/); // no composite density
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*ft²\)/);    // no area conversion
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*ft³\)/);    // no volume conversion
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*px\)/);     // no CSS conversion
-    expect(text).not.toMatch(/\(\s*\d+(\.\d+)?\s*mph\)/);    // no velocity conversion
+    expect(unitSpan()).toBeNull();
+
     expect(text).toContain("20 m²");
     expect(text).toContain("100 m³");
     expect(text).toContain("10 m/s");

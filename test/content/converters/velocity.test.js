@@ -2,6 +2,14 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { walkAndConvert, revertAllConvertedText } from "@/content/dom/walker.js";
 import { VELOCITY_REGEX } from "@/content/converters/velocity.js";
 
+function tooltipsByMatch() {
+  const spans = document.querySelectorAll(".uuc-unit");
+  return Array.from(spans).reduce((acc, s) => {
+    acc[s.textContent] = s.dataset.tooltip;
+    return acc;
+  }, {});
+}
+
 describe("Speed conversion", () => {
   let map;
 
@@ -22,38 +30,39 @@ describe("Speed conversion", () => {
   it("converts metric → imperial speed units", () => {
     walkAndConvert(document.body, map);
 
-    const text = document.body.textContent;
+    const byMatch = tooltipsByMatch();
 
     // m/s → mph
-    expect(text).toMatch(/10 m\/s \(\d+(\.\d+)? mph\)/);
+    expect(byMatch["10 m/s"]).toMatch(/^\d+(\.\d+)? mph$/);
 
     // km/h → mph
-    expect(text).toMatch(/100 km\/h \(\d+(\.\d+)? mph\)/);
+    expect(byMatch["100 km/h"]).toMatch(/^\d+(\.\d+)? mph$/);
 
     // mps → mph (ASCII fallback)
-    expect(text).toMatch(/12 mps \(\d+(\.\d+)? mph\)/);
+    expect(byMatch["12 mps"]).toMatch(/^\d+(\.\d+)? mph$/);
   });
 
   it("converts imperial → metric speed units", () => {
     walkAndConvert(document.body, map);
 
-    const text = document.body.textContent;
+    const byMatch = tooltipsByMatch();
 
     // mph → km/h
-    expect(text).toMatch(/30 mph \(\d+(\.\d+)? km\/h\)/);
+    expect(byMatch["30 mph"]).toMatch(/^\d+(\.\d+)? km\/h$/);
 
     // ft/s → m/s
-    expect(text).toMatch(/50 ft\/s \(\d+(\.\d+)? m\/s\)/);
+    expect(byMatch["50 ft/s"]).toMatch(/^\d+(\.\d+)? m\/s$/);
 
     // fps → m/s (ASCII fallback)
-    expect(text).toMatch(/40 fps \(\d+(\.\d+)? m\/s\)/);
+    expect(byMatch["40 fps"]).toMatch(/^\d+(\.\d+)? m\/s$/);
   });
 
   it("stores original text in the map", () => {
     walkAndConvert(document.body, map);
 
-    const node = document.querySelector("p").firstChild;
-    expect(map.has(node)).toBe(true);
+    const wrapper = document.querySelector(".uuc-text-wrapper");
+    expect(map.has(wrapper)).toBe(true);
+    expect(map.get(wrapper)).toContain("10 m/s");
   });
 
   it("reverts converted speed text back to original", () => {
@@ -69,8 +78,9 @@ describe("Speed conversion", () => {
     expect(text).toContain("50 ft/s");
     expect(text).toContain("40 fps");
 
-    // Ensure no converted parentheses remain
-    expect(text.includes("(")).toBe(false);
+    // No leftover wrapper/tooltip spans
+    expect(document.querySelector(".uuc-unit")).toBeNull();
+    expect(document.querySelector(".uuc-text-wrapper")).toBeNull();
   });
 
   it("regex matches all supported speed units", () => {

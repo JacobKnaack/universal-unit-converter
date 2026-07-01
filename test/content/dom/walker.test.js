@@ -1,12 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { walkAndConvert } from "@/content/dom/walker.js";
 
-import {
-  convertLength,
-  convertTemperature,
-  convertMass,
-} from "@/content/converters/index.js";
-
 describe("walkAndConvert()", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
@@ -17,8 +11,14 @@ describe("walkAndConvert()", () => {
 
     walkAndConvert(document.body, undefined);
 
-    const text = document.body.textContent;
-    expect(text).toMatch(/10 cm \(\d+\.\d{2} in\)/);
+    const span = document.querySelector(".uuc-unit");
+    expect(span).not.toBeNull();
+    expect(span.textContent).toBe("10 cm");
+    expect(span.dataset.tooltip).toMatch(/^\d+\.\d{2} in$/);
+
+    // Visible text stays unchanged — no inline parenthetical
+    expect(document.body.textContent).toContain("The board is 10 cm long.");
+    expect(document.body.textContent).not.toContain("(");
   });
 
   it("converts temperature units", () => {
@@ -26,8 +26,9 @@ describe("walkAndConvert()", () => {
 
     walkAndConvert(document.body, undefined);
 
-    const text = document.body.textContent;
-    expect(text).toMatch(/30 C \(\d+\.\d{2} F\)/);
+    const span = document.querySelector(".uuc-unit");
+    expect(span.textContent).toBe("30 C");
+    expect(span.dataset.tooltip).toMatch(/^\d+\.\d{2} F$/);
   });
 
   it("converts mass units", () => {
@@ -35,21 +36,33 @@ describe("walkAndConvert()", () => {
 
     walkAndConvert(document.body, undefined);
 
-    const text = document.body.textContent;
-    expect(text).toMatch(/5 kg \(\d+\.\d{2} lb\)/);
+    const span = document.querySelector(".uuc-unit");
+    expect(span.textContent).toBe("5 kg");
+    expect(span.dataset.tooltip).toMatch(/^\d+\.\d{2} lb$/);
   });
 
-  it("does not double‑convert already converted text", () => {
-    document.body.innerHTML = `<p>The board is 10 cm (3.94 in).</p>`;
+  it("wraps the converted text with a purple-underline span and a tooltip attribute", () => {
+    document.body.innerHTML = `<p>The board is 10 cm long.</p>`;
+
+    walkAndConvert(document.body, undefined);
+
+    const wrapper = document.querySelector(".uuc-text-wrapper");
+    const span = wrapper.querySelector(".uuc-unit");
+
+    expect(span).not.toBeNull();
+    expect(span.hasAttribute("data-tooltip")).toBe(true);
+  });
+
+  it("does not re-wrap already-converted text on a second pass", () => {
+    document.body.innerHTML = `<p>The board is 10 cm long.</p>`;
 
     walkAndConvert(document.body, undefined);
     walkAndConvert(document.body, undefined);
 
-    const text = document.body.textContent;
-
-    // Should appear exactly once
-    expect(text.match(/10 cm/g).length).toBe(1);
-    expect(text.match(/\(/g).length).toBe(1);
+    // Exactly one wrapper/span pair, not nested or duplicated
+    expect(document.querySelectorAll(".uuc-text-wrapper").length).toBe(1);
+    expect(document.querySelectorAll(".uuc-unit").length).toBe(1);
+    expect(document.body.textContent).toContain("The board is 10 cm long.");
   });
 
   it("ignores text without units", () => {
@@ -58,6 +71,7 @@ describe("walkAndConvert()", () => {
     walkAndConvert(document.body, undefined);
 
     expect(document.body.textContent).toBe("Hello world");
+    expect(document.querySelector(".uuc-unit")).toBeNull();
   });
 
   it("converts units inside newly added DOM nodes (MutationObserver simulation)", () => {
@@ -70,7 +84,9 @@ describe("walkAndConvert()", () => {
 
     walkAndConvert(container, undefined);
 
-    expect(container.textContent).toMatch(/2 m \(\d+\.\d{2} ft\)/);
+    const span = container.querySelector(".uuc-unit");
+    expect(span.textContent).toBe("2 m");
+    expect(span.dataset.tooltip).toMatch(/^\d+\.\d{2} ft$/);
   });
 
   it("handles multiple units in the same text node", () => {
@@ -78,11 +94,18 @@ describe("walkAndConvert()", () => {
 
     walkAndConvert(document.body, undefined);
 
-    const text = document.body.textContent;
+    const spans = document.querySelectorAll(".uuc-unit");
+    const byText = Array.from(spans).reduce((acc, s) => {
+      acc[s.textContent] = s.dataset.tooltip;
+      return acc;
+    }, {});
 
-    expect(text).toMatch(/10 cm \(\d+\.\d{2} in\)/);
-    expect(text).toMatch(/5 kg \(\d+\.\d{2} lb\)/);
-    expect(text).toMatch(/20 C \(\d+\.\d{2} F\)/);
+    expect(byText["10 cm"]).toMatch(/^\d+\.\d{2} in$/);
+    expect(byText["5 kg"]).toMatch(/^\d+\.\d{2} lb$/);
+    expect(byText["20 C"]).toMatch(/^\d+\.\d{2} F$/);
+
+    // All three matches live inside a single wrapper for that text node
+    expect(document.querySelectorAll(".uuc-text-wrapper").length).toBe(1);
   });
 
   it("does not convert nonsense text that only looks like it might contain units", () => {
@@ -101,8 +124,7 @@ describe("walkAndConvert()", () => {
     expect(text).toContain("123abc456def789");
     expect(text).toContain("foo99bar88baz77");
 
-    // Should NOT contain parentheses from conversions
-    expect(text.includes("(")).toBe(false); 
+    expect(document.querySelector(".uuc-unit")).toBeNull();
   });
 
   it("does not convert units or numbers inside URLs", () => {
@@ -119,10 +141,6 @@ describe("walkAndConvert()", () => {
     // URL should remain EXACTLY the same
     expect(text).toContain("https://example.com/path/10cm/image.png?size=20m&foo=30C");
 
-    // Should NOT contain any converted parentheses
-    expect(text.includes("(")).toBe(false);
-
-    // Should NOT convert embedded unit-like substrings
-    expect(text).not.toMatch(/\(\d+\.\d{2}/); // no converted values
+    expect(document.querySelector(".uuc-unit")).toBeNull();
   });
 });
