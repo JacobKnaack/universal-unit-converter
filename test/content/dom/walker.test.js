@@ -1,5 +1,71 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { walkAndConvert } from "@/content/dom/walker.js";
+import getWindowDistance from "@/content/utility/getWindowDistance.js";
+
+function mockElement(rect) {
+  const el = document.createElement("div");
+  el.getBoundingClientRect = () => rect;
+  return el;
+}
+
+function setViewport(width, height) {
+  Object.defineProperty(window, "innerWidth", { value: width, configurable: true });
+  Object.defineProperty(window, "innerHeight", { value: height, configurable: true });
+}
+
+describe("getWindowDistance utility", () => {
+  it("returns null when no element is provided", () => {
+    expect(getWindowDistance(null)).toBeNull();
+    expect(getWindowDistance(undefined)).toBeNull();
+  });
+
+  it("computes distances to each viewport edge for an element within bounds", () => {
+    setViewport(1000, 800);
+    const el = mockElement({ top: 100, left: 50, right: 250, bottom: 150 });
+
+    expect(getWindowDistance(el)).toEqual({
+      top: 100,
+      left: 50,
+      bottom: 650, // 800 - 150
+      right: 750,  // 1000 - 250
+    });
+  });
+
+  it("clamps left to 0 when the element starts before the left edge", () => {
+    setViewport(1000, 800);
+    const el = mockElement({ top: 10, left: -40, right: 100, bottom: 50 });
+
+    expect(getWindowDistance(el).left).toBe(0);
+  });
+
+  it("clamps top to 0 when the element starts above the top edge", () => {
+    setViewport(1000, 800);
+    const el = mockElement({ top: -20, left: 10, right: 100, bottom: 50 });
+
+    expect(getWindowDistance(el).top).toBe(0);
+  });
+
+  it("clamps right to 0 when the element extends past the right edge", () => {
+    setViewport(1000, 800);
+    const el = mockElement({ top: 10, left: 950, right: 1200, bottom: 50 });
+
+    expect(getWindowDistance(el).right).toBe(0);
+  });
+
+  it("clamps bottom to 0 when the element extends past the bottom edge", () => {
+    setViewport(1000, 800);
+    const el = mockElement({ top: 10, left: 10, right: 100, bottom: 900 });
+
+    expect(getWindowDistance(el).bottom).toBe(0);
+  });
+
+  it("returns zero distances for an element flush against every edge", () => {
+    setViewport(500, 400);
+    const el = mockElement({ top: 0, left: 0, right: 500, bottom: 400 });
+
+    expect(getWindowDistance(el)).toEqual({ top: 0, left: 0, bottom: 0, right: 0 });
+  });
+});
 
 describe("walkAndConvert()", () => {
   beforeEach(() => {

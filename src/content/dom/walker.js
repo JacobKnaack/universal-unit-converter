@@ -11,14 +11,32 @@ import {
   CURRENCY_REGEX,
  } from "../converters/index.js";
 import { maskUrls, unmaskUrls } from "../utility/urls.js";
+import getWindowDistance from "../utility/getWindowDistance.js";
 
 const WRAPPER_CLASS = "uuc-text-wrapper";
 const UNIT_CLASS = "uuc-unit";
+const FLIP_CLASS = "uuc-flip";
 
 const MARKER_OPEN = "@@UUC_OPEN@@";
 const MARKER_SEP = "@@UUC_SEP@@";
 const MARKER_CLOSE = "@@UUC_CLOSE@@";
 const MARKER_REGEX = /@@UUC_OPEN@@(.*?)@@UUC_SEP@@(.*?)@@UUC_CLOSE@@/gs;
+
+function shouldFlipTooltip(distance, tooltipWidth) {
+  return distance - tooltipWidth < 0;
+}
+
+// Flip the tooltip to grow leftward (anchored to the span's right edge)
+// instead of rightward whenever it would otherwise overflow the viewport.
+document.addEventListener("mouseover", (event) => {
+  const span = event.target.closest?.(`.${UNIT_CLASS}`);
+  if (!span) return;
+
+  const { right } = getWindowDistance(span);
+  const tooltipWidth = parseFloat(getComputedStyle(span, "::after").width) || 0;
+
+  span.classList.toggle(FLIP_CLASS, shouldFlipTooltip(right, tooltipWidth));
+});
 
 const CONVERTERS = [
   { 

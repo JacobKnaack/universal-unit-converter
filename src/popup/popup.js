@@ -204,7 +204,6 @@ function handleLiveConversion() {
   const value = manualValue.value.trim();
 
   if (value === "") {
-    console.log('No input value provided. Resetting result display:', resultValue, resultUnit);
     resultValue.textContent = "0";
     resultUnit.textContent = fromUnit;
     return;

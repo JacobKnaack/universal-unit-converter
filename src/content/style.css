@@ -8,8 +8,7 @@
   content: attr(data-tooltip);
   position: absolute;
   bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   margin-bottom: 4px;
   padding: 4px 8px;
   background: #2b2b2b;
@@ -17,8 +16,14 @@
   font-size: 1.1rem;
   line-height: 1.2;
   white-space: pre;
-  text-align: center;
+  text-align: left;
   border-radius: 4px;
   z-index: 2147483647;
   pointer-events: none;
+}
+
+/* Applied via JS when the tooltip would overflow the viewport's right edge */
+.uuc-unit.uuc-flip:hover::after {
+  left: auto;
+  right: -1rem;
 }
