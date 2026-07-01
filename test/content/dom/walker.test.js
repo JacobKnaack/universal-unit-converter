@@ -41,6 +41,16 @@ describe("walkAndConvert()", () => {
     expect(span.dataset.tooltip).toMatch(/^\d+\.\d{2} lb$/);
   });
 
+  it("converts data size units", () => {
+    document.body.innerHTML = `<p>The download is 512 KB in size.</p>`;
+
+    walkAndConvert(document.body, undefined);
+
+    const span = document.querySelector(".uuc-unit");
+    expect(span.textContent).toBe("512 KB");
+    expect(span.dataset.tooltip).toMatch(/^500\.00 kib$/);
+  });
+
   it("wraps the converted text with a purple-underline span and a tooltip attribute", () => {
     document.body.innerHTML = `<p>The board is 10 cm long.</p>`;
 

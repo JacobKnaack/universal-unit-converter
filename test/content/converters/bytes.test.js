@@ -107,14 +107,22 @@ describe("Data Size Converter", () => {
   // -----------------------------
   // TARGET UNIT MAP
   // -----------------------------
+  it("maps plain bytes to kb", () => {
+    expect(DATA_SIZE_TARGET_UNITS["b"]).toBe("kb");
+
+    const result = convertBytes(512, "b", DATA_SIZE_TARGET_UNITS["b"]);
+    expect(result.value).toBeCloseTo(0.512);
+    expect(result.unit).toBe("kb");
+  });
+
   it("maps to metric target units", () => {
-    expect(DATA_SIZE_TARGET_UNITS.metric["gib"]).toBe("gb");
-    expect(DATA_SIZE_TARGET_UNITS.metric["mib"]).toBe("mb");
+    expect(DATA_SIZE_TARGET_UNITS["gib"]).toBe("gb");
+    expect(DATA_SIZE_TARGET_UNITS["mib"]).toBe("mb");
   });
 
   it("maps to binary target units", () => {
-    expect(DATA_SIZE_TARGET_UNITS.binary["gb"]).toBe("gib");
-    expect(DATA_SIZE_TARGET_UNITS.binary["mb"]).toBe("mib");
+    expect(DATA_SIZE_TARGET_UNITS["gb"]).toBe("gib");
+    expect(DATA_SIZE_TARGET_UNITS["mb"]).toBe("mib");
   });
 
   // -----------------------------

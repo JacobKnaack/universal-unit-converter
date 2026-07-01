@@ -7,6 +7,7 @@ import {
   convertCssUnits, CSS_UNIT_REGEX, CSS_TARGET_UNIT,
   convertArea, AREA_REGEX, AREA_TARGET_UNITS, NORMALIZE_AREA_UNIT,
   convertDensity, DENSITY_REGEX, NORMALIZE_DENSITY_UNIT, DENSITY_TARGET_UNITS,
+  convertBytes, DATA_SIZE_REGEX, NORMALIZE_DATA_SIZE_UNIT, DATA_SIZE_TARGET_UNITS,
   CURRENCY_REGEX,
  } from "../converters/index.js";
 import { maskUrls, unmaskUrls } from "../utility/urls.js";
@@ -73,6 +74,13 @@ const CONVERTERS = [
     normalize: (u) => NORMALIZE_DENSITY_UNIT[u],
     getTarget: (from) => DENSITY_TARGET_UNITS[from],
   },
+  {
+    key: 'convertBytes',
+    regex: DATA_SIZE_REGEX,
+    convert: convertBytes,
+    normalize: (u) => NORMALIZE_DATA_SIZE_UNIT[u],
+    getTarget: (from) => DATA_SIZE_TARGET_UNITS[from],
+  }
 ];
 
 const defaultCategories = {
@@ -84,6 +92,7 @@ const defaultCategories = {
   convertCss: true,
   convertArea: true,
   convertDensity: true,
+  convertBytes: true,
 }
 
 function revertAllConvertedText(textMap) {

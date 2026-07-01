@@ -27,6 +27,7 @@ const categoryCheckboxes = {
   convertCss: document.getElementById("convertCss"),
   convertArea: document.getElementById("convertArea"),
   convertDensity: document.getElementById('convertDensity'),
+  convertBytes: document.getElementById('convertBytes'),
 }
 
 // Adds eventlistener to save settings after each click
