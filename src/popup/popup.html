@@ -33,10 +33,21 @@
     }
 
     h2 {
-      margin: 0 0 10px 0;
       font-size: 1rem;
       font-weight: 700;
       color: var(--text);
+    }
+    #autoConvertLabel {
+      display: inline-flex;
+      flex-direction: column-reverse;
+    }
+    #status {
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: #4b5563;
+      white-space: nowrap;
+      height: 0;
+      transform: translateY(-16px);
     }
 
     label {
@@ -45,45 +56,9 @@
       margin-bottom: 4px;
       display: block;
     }
-
-    select, input {
-      width: 100%;
-      padding: 8px 10px;
-      margin-top: 4px;
-      border-radius: var(--radius);
-      border: 1px solid var(--glass-border);
-      background: rgba(255, 255, 255, 0.65);
-      font-size: 0.9rem;
-      box-sizing: border-box;
-      backdrop-filter: blur(6px);
-      transition: border-color 0.15s ease;
-    }
-
-    select:focus, input:focus {
+    .form-group select:focus, .form-group input:focus {
       border-color: var(--accent);
       outline: none;
-    }
-
-    button {
-      width: 100%;
-      padding: 9px;
-      margin-top: 10px;
-      background: var(--accent);
-      color: white;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s ease, transform 0.1s ease;
-    }
-
-    button:hover {
-      background: var(--accent-hover);
-    }
-
-    button:active {
-      transform: scale(0.98);
     }
 
     .checkbox-row {
@@ -101,6 +76,52 @@
     /* Utility alignment for the manual section */
     .form-group {
       margin-bottom: 10px;
+    }
+
+    .form-group input {
+      padding: 8px 10px;
+      margin-top: 4px;
+      border-radius: var(--radius);
+      border: 1px solid #808080;
+      background: rgba(255, 255, 255, 0.65);
+      font-size: 0.9rem;
+      box-sizing: border-box;
+      backdrop-filter: blur(6px);
+      transition: border-color 0.15s ease;
+    }
+
+
+    .form-group select, .form-group input {
+      /* Reset default browser styles */
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+
+      /* Structure & Typography */
+      width: 100%;
+      font-size: 16px;
+      font-family: inherit;
+      color: #333333;
+
+      /* Borders & Background */
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+
+      /* The Subtle Box Shadow */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+      
+      /* Smooth transitions for interactions */
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .form-group select {
+      padding: 10px 40px 10px 14px; /* Extra right padding makes room for a custom arrow */
+      /* Custom Arrow Graphic (Optional but highly recommended when using appearance: none) */
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
     }
 
     .conversion-row {
@@ -121,7 +142,7 @@
       height: 32px;
       padding: 0;
       margin-top: 0;
-      margin-bottom: 2px; /* Visual alignment with select inputs */
+      margin-bottom: 10px; /* Visual alignment with select inputs */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -161,9 +182,62 @@
 
 <body>
 
-  <!-- SECTION 1: AUTO CONVERSION SETTINGS -->
+  <!-- MANUAL CONVERSION TOOL -->
   <div class="card">
-    <h2>Automatic Conversion<span id="status"></span></h2>
+    <h2>Manual Conversion</h2>
+  
+    <div class="form-group">
+      <label for="manualCategory">Category</label>
+      <select id="manualCategory">
+        <option value="length">Length</option>
+        <option value="temperature">Temperature</option>
+        <option value="mass">Mass</option>
+        <option value="area">Area</option>
+        <option value="volume">Volume</option>
+        <option value="velocity">Velocity</option>
+        <option value="css">CSS Units</option>
+      </select>
+    </div>
+  
+    <div class="conversion-row">
+      <div class="form-group field-half">
+        <label for="manualFrom">From</label>
+        <select id="manualFrom"></select>
+      </div>
+  
+      <button id="swapUnitsBtn" type="button" title="Swap Units" aria-label="Swap units">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="m17 2 4 4-4 4"></path>
+          <path d="M3 6h18"></path>
+          <path d="m7 22-4-4 4-4"></path>
+          <path d="M21 18H3"></path>
+        </svg>
+      </button>
+  
+      <div class="form-group field-half">
+        <label for="manualTo">To</label>
+        <select id="manualTo"></select>
+      </div>
+    </div>
+  
+    <div class="form-group" style="margin-top: 12px;">
+      <label for="manualValue">Value</label>
+      <input id="manualValue" type="number" inputmode="decimal" placeholder="0">
+    </div>
+  
+    <div id="resultCard" class="result-display">
+      <span id="resultValue">0</span>
+      <span id="resultUnit"></span>
+    </div>
+  </div>
+
+  <!-- AUTO CONVERSION SETTINGS -->
+  <div class="card">
+    <div class="checkbox-row status-row">
+      <input type="checkbox" id="autoConvert">
+      <h2 id="autoConvertLabel">Automatic Conversion<span id="status"></span></h2>
+    </div>
 
     <div style="margin-top: 10px; font-weight: 600;">Units to Convert:</div>
 
@@ -202,59 +276,6 @@
     <div class="checkbox-row">
       <input type="checkbox" id="convertBytes" checked>
       <span>Bytes</span>
-    </div>
-    <div class="checkbox-row" style="margin-top: 10px;">
-      <input type="checkbox" id="autoConvert">
-      <span>Enable Automatic Conversion</span>
-    </div>
-  </div>
-
-  <!-- SECTION 2: MANUAL CONVERSION TOOL -->
-  <div class="card">
-    <h2>Manual Conversion</h2>
-
-    <div class="form-group">
-      <label for="manualCategory">Category</label>
-      <select id="manualCategory">
-        <option value="length">Length</option>
-        <option value="temperature">Temperature</option>
-        <option value="mass">Mass</option>
-        <option value="area">Area</option>
-        <option value="volume">Volume</option>
-        <option value="velocity">Velocity</option>
-        <option value="css">CSS Units</option>
-      </select>
-    </div>
-
-    <div class="conversion-row">
-      <div class="field-half">
-        <label for="manualFrom">From</label>
-        <select id="manualFrom"></select>
-      </div>
-
-      <button id="swapUnitsBtn" type="button" title="Swap Units" aria-label="Swap units">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m17 2 4 4-4 4"></path>
-          <path d="M3 6h18"></path>
-          <path d="m7 22-4-4 4-4"></path>
-          <path d="M21 18H3"></path>
-        </svg>
-      </button>
-
-      <div class="field-half">
-        <label for="manualTo">To</label>
-        <select id="manualTo"></select>
-      </div>
-    </div>
-
-    <div class="form-group" style="margin-top: 12px;">
-      <label for="manualValue">Value</label>
-      <input id="manualValue" type="number" inputmode="decimal" placeholder="0">
-    </div>
-
-    <div id="resultCard" class="result-display">
-      <span id="resultValue">0</span>
-      <span id="resultUnit"></span>
     </div>
   </div>
 

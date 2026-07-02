@@ -109,4 +109,3 @@ This is our caching layer.  It will cache responses from the Lambda keyed to the
 4. Finalize and Deploy
     * Scroll down to the Web Application Firewall (WAF) section. If you are just testing, you can select Do not enable security protections to avoid extra costs, though enabling it later is recommended if your extension scales up.
     * Scroll to the bottom and click Create distribution.
-

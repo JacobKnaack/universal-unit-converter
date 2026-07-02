@@ -38,7 +38,10 @@ export default defineConfig({
         this.addWatchFile(resolve(__dirname, "manifest.json"));
         this.addWatchFile(resolve(__dirname, "src/popup/popup.html"));
         this.addWatchFile(resolve(__dirname, "src/options/options.html"));
-        this.addWatchFile(resolve(__dirname, "assets/icons/favicon.png"));
+        this.addWatchFile(resolve(__dirname, "assets/icons/icon-16.png"));
+        this.addWatchFile(resolve(__dirname, "assets/icons/icon-32.png"));
+        this.addWatchFile(resolve(__dirname, "assets/icons/icon-48.png"));
+        this.addWatchFile(resolve(__dirname, "assets/icons/icon-128.png"));
         this.addWatchFile(resolve(__dirname, "src/content/style.css"));
       }
     },
@@ -47,7 +50,10 @@ export default defineConfig({
         { src: "manifest.json", dest: "." },
         { src: "src/popup/popup.html", dest: "." },
         { src: "src/options/options.html", dest: "." },
-        { src: "assets/icons/favicon.png", dest: "." },
+        { src: "assets/icons/icon-16.png", dest: "." },
+        { src: "assets/icons/icon-32.png", dest: "." },
+        { src: "assets/icons/icon-48.png", dest: "." },
+        { src: "assets/icons/icon-128.png", dest: "." },
         { src: "src/content/style.css", dest: "assets" }
       ]
     })
