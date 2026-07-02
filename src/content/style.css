@@ -1,5 +1,5 @@
 .uuc-unit {
-  border-bottom: 1px solid purple;
+  border-bottom: 1px solid var(--uuc-underline-color, purple);
   cursor: help;
 }
 
@@ -9,16 +9,16 @@
   display: none;
   position: fixed;
   padding: 4px;
-  background: #2b2b2b;
+  background: var(--uuc-tooltip-bg, #2b2b2b);
   border-radius: 4px;
   z-index: 2147483647;
   pointer-events: none;
   grid-template-columns: max-content max-content;
   column-gap: 1px;
   row-gap: 1px;
-  font-size: 1.1rem;
+  font-size: var(--uuc-tooltip-font-size, 1.1rem);
   line-height: 1.3;
-  color: #fff;
+  color: var(--uuc-tooltip-fg, #fff);
 }
 
 .uuc-tooltip-row {
@@ -42,5 +42,5 @@
 /* Alternate row backgrounds: odd rows blend with the tooltip's own
    background, even rows get a slightly lighter shade. */
 .uuc-tooltip-row:nth-child(even) > * {
-  background: #3a3a3a;
+  background: var(--uuc-tooltip-bg-alt, #3a3a3a);
 }

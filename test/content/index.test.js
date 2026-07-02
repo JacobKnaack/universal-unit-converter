@@ -68,8 +68,6 @@ describe("content/index.js storage behavior", () => {
     chrome.storage.sync.get.mockImplementation((keys, cb) =>
       cb({
         autoConvert: true,
-        unitSystem: "imperial",
-        cssUnitSystem: "px",
         enabledCategories: { convertLength: true }
       })
     );
@@ -82,13 +80,36 @@ describe("content/index.js storage behavior", () => {
     chrome.storage.sync.get.mockImplementation((keys, cb) =>
       cb({
         autoConvert: false,
-        unitSystem: "imperial",
-        cssUnitSystem: "px",
         enabledCategories: { convertLength: true }
       })
     );
     listener({ autoConvert: { newValue: false } });
 
     expect(disableConversion).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies tooltip settings on load", async () => {
+    chrome.storage.sync.get.mockImplementation((keys, cb) =>
+      cb({ autoConvert: false, tooltipSettings: { underlineColor: "#123456" } })
+    );
+
+    await import("@/content/index.js");
+
+    expect(document.documentElement.style.getPropertyValue("--uuc-underline-color")).toBe("#123456");
+  });
+
+  it("re-applies tooltip settings when they change, without touching auto-convert state", async () => {
+    chrome.storage.sync.get.mockImplementation((keys, cb) =>
+      cb({ autoConvert: false })
+    );
+
+    await import("@/content/index.js");
+
+    const listener = chrome.storage.onChanged.addListener.mock.calls[0][0];
+    listener({ tooltipSettings: { newValue: { underlineColor: "#abcdef" } } });
+
+    expect(document.documentElement.style.getPropertyValue("--uuc-underline-color")).toBe("#abcdef");
+    expect(enableConversion).not.toHaveBeenCalled();
+    expect(disableConversion).not.toHaveBeenCalled();
   });
 });
