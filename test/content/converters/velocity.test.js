@@ -113,4 +113,18 @@ describe("Speed conversion", () => {
     expect(re.test(s)).toBe(true);
     }
   });
+
+  it("converts word-based numbers, leaving the original wording as the visible text", () => {
+    document.body.innerHTML = `<p>The car was traveling at thirty mph.</p>`;
+
+    walkAndConvert(document.body, map);
+
+    const span = document.querySelector(".uuc-unit");
+    // Visible text is exactly what was written — never rewritten to "30 mph"
+    expect(span.textContent).toBe("thirty mph");
+
+    const byMatch = tooltipsByMatch();
+    expect(byMatch["thirty mph"].unit).toBe("km/h");
+    expect(parseFloat(byMatch["thirty mph"].value)).toBeCloseTo(48.28, 1);
+  });
 });

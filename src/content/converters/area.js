@@ -1,4 +1,11 @@
-const AREA_REGEX = /(\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)[ ]*(mm²|cm²|m²|km²|in²|ft²|yd²|mi²|mm2|cm2|m2|km2|in2|ft2|yd2|mi2|mm\^2|cm\^2|m\^2|km\^2|in\^2|ft\^2|yd\^2|mi\^2)(?![A-Za-z0-9/])/gi;
+import { WORD_NUMBER_SOURCE } from "../utility/wordsToNumbers.js";
+
+// Note: unlike most converters, the digit branches here have no leading
+// \b of their own — only the word-number branch is explicitly bounded.
+const AREA_REGEX = new RegExp(
+  `(\\d{1,3}(?:,\\d{3})*(?:\\.\\d+)?|\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER_SOURCE})\\b)[ ]*(mm²|cm²|m²|km²|in²|ft²|yd²|mi²|mm2|cm2|m2|km2|in2|ft2|yd2|mi2|mm\\^2|cm\\^2|m\\^2|km\\^2|in\\^2|ft\\^2|yd\\^2|mi\\^2)(?![A-Za-z0-9/])`,
+  "gi"
+);
 
 const NORMALIZE_AREA_UNIT = {
   "mm²": "mm2",

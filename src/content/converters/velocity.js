@@ -1,4 +1,9 @@
-const VELOCITY_REGEX = /\b(\d+(?:\.\d+)?)\s?(m\/s|km\/h|ft\/s|mps|kph|mph|fps)\b(?![a-zA-Z])/gi;
+import { WORD_NUMBER_SOURCE } from "../utility/wordsToNumbers.js";
+
+const VELOCITY_REGEX = new RegExp(
+  `\\b(\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER_SOURCE})\\b)\\s?(m/s|km/h|ft/s|mps|kph|mph|fps)\\b(?![a-zA-Z])`,
+  "gi"
+);
 
 const NORMALIZE_VELOCITY = {
   "m/s": "m/s",

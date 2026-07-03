@@ -24,7 +24,8 @@ A Chrome extension that automatically converts units on any webpage into your pr
 
 ### **Temperature**
 
-- °C ↔ °F  
+- °C, °F, and Kelvin — each converts to the other two  
+- Kelvin is not auto‑detected from page text (bare "K" collides too often with shorthand like "10k"), but is available as a conversion target and in manual conversion  
 
 ### **Mass**
 
@@ -112,6 +113,10 @@ All settings are stored in `chrome.storage.sync` and applied instantly across al
 ## Running Tests
 
 `npm test`
+
+## Known Limitations
+
+- **Numbers and units split across separate DOM nodes aren't detected.** Some sites (notably Wikipedia's Parsoid‑generated markup) wrap the non‑breaking space between a number and its unit in its own element, e.g. `0<span>&nbsp;</span>K`. The converter matches a number and its unit within a single text node at a time, so when an element sits between them like this, nothing matches. A fix is possible — either merging whitespace‑only inline elements into their surrounding text before scanning, or a more general pass that flattens sibling inline nodes into one logical text run before matching — but isn't implemented yet.
 
 ## Roadmap
 

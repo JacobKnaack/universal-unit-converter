@@ -116,7 +116,7 @@ function showSaved() {
 
 const UNIT_MAP = {
   length: ["m", "cm", "km", "ft", "in", "mi"],
-  temperature: ["C", "F"],
+  temperature: ["C", "F", "K"],
   mass: ["g", "kg", "lb", "oz"],
   volume: ["ml", "l", "m³", "fl oz", "gal", "ft³"],
   velocity: ["m/s", "km/h", "mph", "ft/s"],

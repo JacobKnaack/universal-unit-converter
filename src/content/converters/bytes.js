@@ -1,4 +1,11 @@
-const DATA_SIZE_REGEX = /(?<![A-Za-z0-9])(\d+(?:\.\d+)?)\s*(bytes?|b|kb|kib|mb|mib|gb|gib|tb|tib)(?![A-Za-z0-9])/gi;
+import { WORD_NUMBER_SOURCE } from "../utility/wordsToNumbers.js";
+
+// Note: uses a negative lookbehind instead of a leading \b — only the
+// word-number branch is explicitly bounded with its own \b.
+const DATA_SIZE_REGEX = new RegExp(
+  `(?<![A-Za-z0-9])(\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER_SOURCE})\\b)\\s*(bytes?|b|kb|kib|mb|mib|gb|gib|tb|tib)(?![A-Za-z0-9])`,
+  "gi"
+);
 
 const NORMALIZE_DATA_SIZE_UNIT = {
   byte: "b",

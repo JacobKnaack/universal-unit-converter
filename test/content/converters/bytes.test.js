@@ -47,6 +47,14 @@ describe("Data Size Converter", () => {
     }
   });
 
+  it("also matches word-based numbers", () => {
+    const samples = ["ten KB", "twelve MiB", "one hundred GB"];
+
+    for (const s of samples) {
+      expect(s.match(DATA_SIZE_REGEX)).not.toBeNull();
+    }
+  });
+
   // -----------------------------
   // NORMALIZATION
   // -----------------------------

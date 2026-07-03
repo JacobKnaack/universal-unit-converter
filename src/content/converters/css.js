@@ -1,4 +1,9 @@
-const CSS_UNIT_REGEX = /\b(\d+(?:\.\d+)?)\s?(px|rem|em|vh|vw)\b(?!\/[a-z])/gi;
+import { WORD_NUMBER_SOURCE } from "../utility/wordsToNumbers.js";
+
+const CSS_UNIT_REGEX = new RegExp(
+  `\\b(\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER_SOURCE})\\b)\\s?(px|rem|em|vh|vw)\\b(?!/[a-z])`,
+  "gi"
+);
 
 
 const CSS_TARGET_UNIT = {

@@ -1,4 +1,9 @@
-const MASS_REGEX = /\b(\d+(?:\.\d+)?)\s?(g|kg|lb|oz)\b(?!\/[a-z])/gi;
+import { WORD_NUMBER_SOURCE } from "../utility/wordsToNumbers.js";
+
+const MASS_REGEX = new RegExp(
+  `\\b(\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER_SOURCE})\\b)\\s?(g|kg|lb|oz)\\b(?!/[a-z])`,
+  "gi"
+);
 
 // Base conversion map: all units → kilograms
 const MASS_TO_KG = {

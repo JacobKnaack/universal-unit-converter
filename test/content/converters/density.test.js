@@ -104,4 +104,9 @@ describe('Density Regex', () => {
     `;
     expect([...text.matchAll(DENSITY_REGEX)].length).toBe(0);
   });
+  it("also matches word-based numbers", () => {
+    const text = `Steel is about one thousand kg/m³.`;
+    const matches = [...text.matchAll(DENSITY_REGEX)].map(m => m[0]);
+    expect(matches).toContain("one thousand kg/m³");
+  });
 });

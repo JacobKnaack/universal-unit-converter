@@ -1,4 +1,9 @@
-const LENGTH_REGEX = /\b(\d+(?:\.\d+)?)\s*(cm|mm|m|km|in|ft|yd|mi)(?![A-Za-z0-9²³/])\b/gi;
+import { WORD_NUMBER_SOURCE } from "../utility/wordsToNumbers.js";
+
+const LENGTH_REGEX = new RegExp(
+  `\\b(\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER_SOURCE})\\b)\\s*(cm|mm|m|km|in|ft|yd|mi)(?![A-Za-z0-9²³/])\\b`,
+  "gi"
+);
 
 const LENGTH_TO_METERS = {
   mm: 0.001,

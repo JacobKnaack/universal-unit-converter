@@ -103,7 +103,7 @@ describe("walkAndConvert()", () => {
     expect(document.body.textContent).not.toContain("(");
   });
 
-  it("converts temperature units", () => {
+  it("converts temperature units to both Fahrenheit and Kelvin", () => {
     document.body.innerHTML = `<p>It is 30 C outside.</p>`;
 
     walkAndConvert(document.body, undefined);
@@ -112,8 +112,20 @@ describe("walkAndConvert()", () => {
     expect(span.textContent).toBe("30 C");
 
     const rows = hoverAndGetTooltipRows(span);
-    expect(rows[0].value).toMatch(/^\d+\.\d{2}$/);
+    expect(rows).toHaveLength(2);
     expect(rows[0].unit).toBe("F");
+    expect(rows[0].value).toMatch(/^\d+\.\d{2}$/);
+    expect(rows[1].unit).toBe("K");
+    expect(rows[1].value).toMatch(/^\d+\.\d{2}$/);
+  });
+
+  it("does not auto-detect bare Kelvin mentions in page text", () => {
+    document.body.innerHTML = `<p>The video has 10k views.</p>`;
+
+    walkAndConvert(document.body, undefined);
+
+    expect(document.querySelector(".uuc-unit")).toBeNull();
+    expect(document.body.textContent).toContain("The video has 10k views.");
   });
 
   it("converts mass units", () => {
@@ -271,6 +283,56 @@ describe("walkAndConvert()", () => {
     expect(text).toContain("https://example.com/path/10cm/image.png?size=20m&foo=30C");
 
     expect(document.querySelector(".uuc-unit")).toBeNull();
+  });
+
+  it("converts word-based numbers for length, leaving the original wording as the visible text", () => {
+    document.body.innerHTML = `<p>The board is ten cm thick.</p>`;
+
+    walkAndConvert(document.body, undefined);
+
+    const span = document.querySelector(".uuc-unit");
+    expect(span.textContent).toBe("ten cm");
+
+    const rows = hoverAndGetTooltipRows(span);
+    expect(rows[0].unit).toBe("in");
+    expect(parseFloat(rows[0].value)).toBeCloseTo(3.94, 1);
+  });
+
+  it("converts word-based numbers for mass", () => {
+    document.body.innerHTML = `<p>The bag weighs five kg.</p>`;
+
+    walkAndConvert(document.body, undefined);
+
+    const span = document.querySelector(".uuc-unit");
+    expect(span.textContent).toBe("five kg");
+
+    const rows = hoverAndGetTooltipRows(span);
+    expect(rows[0].unit).toBe("lb");
+    expect(parseFloat(rows[0].value)).toBeCloseTo(11.02, 1);
+  });
+
+  it("converts large compound word-based numbers", () => {
+    document.body.innerHTML = `<p>The distance is one hundred twenty-three km.</p>`;
+
+    walkAndConvert(document.body, undefined);
+
+    const span = document.querySelector(".uuc-unit");
+    expect(span.textContent).toBe("one hundred twenty-three km");
+
+    const rows = hoverAndGetTooltipRows(span);
+    expect(rows[0].unit).toBe("mi");
+    expect(parseFloat(rows[0].value.replace(/,/g, ""))).toBeCloseTo(76.44, 1);
+  });
+
+  it("does not falsely trigger on ordinary words that merely contain number-word substrings", () => {
+    document.body.innerHTML = `<p>Pay attention to the phone, money matters more than you think.</p>`;
+
+    walkAndConvert(document.body, undefined);
+
+    expect(document.querySelector(".uuc-unit")).toBeNull();
+    expect(document.body.textContent).toContain(
+      "Pay attention to the phone, money matters more than you think."
+    );
   });
 
   it("does not touch text inside <style>, <script>, <textarea>, <title>, or contenteditable elements", () => {

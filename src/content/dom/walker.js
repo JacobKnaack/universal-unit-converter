@@ -12,6 +12,7 @@ import {
  } from "../converters/index.js";
 import { maskUrls, unmaskUrls } from "../utility/urls.js";
 import getWindowDistance from "../utility/getWindowDistance.js";
+import { parseNumberToken } from "../utility/wordsToNumbers.js";
 
 const WRAPPER_CLASS = "uuc-text-wrapper";
 const UNIT_CLASS = "uuc-unit";
@@ -309,7 +310,9 @@ function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCa
       const targets = converter.getTarget ? converter.getTarget(normalized) : null;
       if (!targets || !targets.length) return match;
 
-      const value = parseFloat(num.replace(/,/g, ''));
+      const value = parseNumberToken(num);
+      if (Number.isNaN(value)) return match;
+
       const conversions = targets
         .map((to) => converter.convert(value, normalized, to))
         .filter(Boolean);

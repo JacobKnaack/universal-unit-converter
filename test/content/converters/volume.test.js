@@ -85,4 +85,17 @@ describe("Volume conversion", () => {
     expect(document.querySelector(".uuc-unit")).toBeNull();
     expect(document.querySelector(".uuc-text-wrapper")).toBeNull();
   });
+
+  it("converts word-based numbers, leaving the original wording as the visible text", () => {
+    document.body.innerHTML = `<p>The tank holds one gallon of fuel.</p>`;
+
+    walkAndConvert(document.body, map);
+
+    const span = document.querySelector(".uuc-unit");
+    expect(span.textContent).toBe("one gallon");
+
+    const byMatch = tooltipsByMatch();
+    expect(byMatch["one gallon"].unit).toBe("l");
+    expect(parseFloat(byMatch["one gallon"].value)).toBeCloseTo(3.79, 1);
+  });
 });
