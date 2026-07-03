@@ -7,6 +7,7 @@ import {
   convertVelocity,
   convertArea,
   convertDensity,
+  convertBytes,
 } from "@/content/converters/index.js";
 import { defaultCategories } from "@/content/dom/walker";
 
@@ -72,6 +73,8 @@ chrome.storage.sync.get(
       convertTemperature: tempBox,
       convertCss: cssBox,
       convertArea: areaBox,
+      convertDensity: densityBox,
+      convertBytes: bytesBox,
     } = categoryCheckboxes;
 
     lengthBox.checked = cats.convertLength;
@@ -81,6 +84,8 @@ chrome.storage.sync.get(
     tempBox.checked = cats.convertTemperature;
     cssBox.checked = cats.convertCss;
     areaBox.checked = cats.convertArea;
+    densityBox.checked = cats.convertDensity;
+    bytesBox.checked = cats.convertBytes;
   }
 );
 
@@ -118,6 +123,7 @@ const UNIT_MAP = {
   css: ["px", "rem", "em", "vh", "vw"],
   area: ["mm²", "cm²", "m²", "km²", "in²", "ft²", "yd²", "mi²"],
   density: ["kg/m³", "g/cm³", "g/mL", "lb/ft³", "lb/in³"],
+  bytes: ["B", "KB", "KiB", "MB", "MiB", "GB", "GiB", "TB", "TiB"],
 };
 
 /* -----------------------------
@@ -187,6 +193,9 @@ function convertManual(category, value, fromUnit, toUnit) {
 
     case "density":
       return convertDensity(v, fromUnit, toUnit);
+
+    case "bytes":
+      return convertBytes(v, fromUnit, toUnit);
 
     default:
       return "Unsupported category.";

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { walkAndConvert } from "@/content/dom/walker.js";
+import { walkAndConvert, isSkippableTextNode } from "@/content/dom/walker.js";
 import getWindowDistance from "@/content/utility/getWindowDistance.js";
 
 function mockElement(rect) {
@@ -271,5 +271,71 @@ describe("walkAndConvert()", () => {
     expect(text).toContain("https://example.com/path/10cm/image.png?size=20m&foo=30C");
 
     expect(document.querySelector(".uuc-unit")).toBeNull();
+  });
+
+  it("does not touch text inside <style>, <script>, <textarea>, <title>, or contenteditable elements", () => {
+    document.body.innerHTML = `
+      <style>.box { width: 10px; height: 100vh; margin: 1.5em; }</style>
+      <script type="application/json">{"width": "10px", "distance": "5 m/s"}</script>
+      <textarea>The board is 10 cm thick.</textarea>
+      <div contenteditable="true">The board is 10 cm thick.</div>
+      <p>The board is 10 cm thick.</p>
+    `;
+
+    walkAndConvert(document.body, undefined);
+
+    // The one plain <p> paragraph is the only place that should convert
+    expect(document.querySelectorAll(".uuc-unit")).toHaveLength(1);
+    expect(document.querySelector("p .uuc-unit")).not.toBeNull();
+
+    // Untouched — still plain text, no injected elements
+    expect(document.querySelector("style").childElementCount).toBe(0);
+    expect(document.querySelector("script").childElementCount).toBe(0);
+    expect(document.querySelector("textarea").childElementCount).toBe(0);
+    expect(document.querySelector("[contenteditable]").querySelector(".uuc-unit")).toBeNull();
+  });
+
+  it("does not corrupt a page's own inline <style> CSS rules", () => {
+    document.body.innerHTML = `
+      <style id="critical-css">.box { width: 100px; height: 50px; }</style>
+      <div class="box"></div>
+    `;
+
+    walkAndConvert(document.body, undefined);
+
+    const styleEl = document.getElementById("critical-css");
+    expect(Array.from(styleEl.childNodes).every((n) => n.nodeType === Node.TEXT_NODE)).toBe(true);
+    expect(styleEl.textContent).toBe(".box { width: 100px; height: 50px; }");
+  });
+});
+
+describe("isSkippableTextNode()", () => {
+  function textNodeIn(html) {
+    const container = document.createElement("div");
+    container.innerHTML = html;
+    document.body.appendChild(container);
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    return walker.nextNode();
+  }
+
+  it("skips text inside <style>, <script>, <noscript>, <textarea>, and <title>", () => {
+    expect(isSkippableTextNode(textNodeIn("<style>.a{width:10px}</style>"))).toBe(true);
+    expect(isSkippableTextNode(textNodeIn("<script>const a = 10;</script>"))).toBe(true);
+    expect(isSkippableTextNode(textNodeIn("<noscript>10 cm</noscript>"))).toBe(true);
+    expect(isSkippableTextNode(textNodeIn("<textarea>10 cm</textarea>"))).toBe(true);
+    expect(isSkippableTextNode(textNodeIn("<title>10 cm</title>"))).toBe(true);
+  });
+
+  it("skips text inside a contenteditable region", () => {
+    expect(isSkippableTextNode(textNodeIn('<div contenteditable="true">10 cm</div>'))).toBe(true);
+  });
+
+  it("does not skip ordinary prose text", () => {
+    expect(isSkippableTextNode(textNodeIn("<p>10 cm</p>"))).toBe(false);
+  });
+
+  it("skips a text node with no parent element", () => {
+    const node = document.createTextNode("10 cm");
+    expect(isSkippableTextNode(node)).toBe(true);
   });
 });

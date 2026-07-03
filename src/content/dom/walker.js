@@ -21,6 +21,22 @@ const TOOLTIP_VALUE_CLASS = "uuc-tooltip-value";
 const TOOLTIP_UNIT_CLASS = "uuc-tooltip-unit";
 const CONVERSIONS_ATTR = "conversions";
 
+// Elements whose text isn't visible prose: <style>/<script> text is source
+// code (often full of "10px"/"1.5em"-style values that match our own unit
+// regexes), <textarea>/<title> text has non-prose semantics, and
+// contenteditable regions are live user-editable content. Wrapping matches
+// inside these — especially <style> — corrupts the page instead of just
+// annotating it: browsers stop parsing a <style> element as CSS once it
+// contains element children instead of only text.
+const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "TITLE"]);
+
+function isSkippableTextNode(node) {
+  const parent = node.parentElement;
+  if (!parent) return true;
+  if (SKIP_TAGS.has(parent.tagName)) return true;
+  return !!parent.closest('[contenteditable="true"], [contenteditable=""]');
+}
+
 const MARKER_OPEN = "@@UUC_OPEN@@";
 const MARKER_SEP = "@@UUC_SEP@@";
 const MARKER_CLOSE = "@@UUC_CLOSE@@";
@@ -196,7 +212,11 @@ function enableConversion(converter, enabledCategories = defaultCategories) {
   converter.observer = new MutationObserver(mutations => {
     for (const m of mutations) {
       m.addedNodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE && !node.classList.contains(WRAPPER_CLASS)) {
+        if (
+          node.nodeType === Node.ELEMENT_NODE &&
+          !node.classList.contains(WRAPPER_CLASS) &&
+          !SKIP_TAGS.has(node.tagName)
+        ) {
           walkAndConvert(node, converter.textMap, enabledCategories);
         }
       });
@@ -257,7 +277,9 @@ function buildConvertedFragment(text) {
 }
 
 function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCategories) {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, (node) =>
+    isSkippableTextNode(node) ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT
+  );
 
   // Collect nodes before mutating: replacing the current node mid-traversal
   // detaches it, which stops TreeWalker from finding its next sibling.
@@ -334,4 +356,5 @@ export {
   disableConversion,
   defaultCategories,
   shouldFlipTooltip,
+  isSkippableTextNode,
 }
