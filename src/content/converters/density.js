@@ -1,4 +1,9 @@
-const DENSITY_REGEX = /\b(\d+(?:\.\d+)?)\s*(kg\/m³|kg\/m3|g\/cm³|g\/cm3|g\/mL|g\/ml|lb\/ft³|lb\/ft3|lb\/in³|lb\/in3)(?![A-Za-z0-9/])/giu;
+import { WORD_NUMBER_SOURCE } from "../utility/wordsToNumbers.js";
+
+const DENSITY_REGEX = new RegExp(
+  `\\b(\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER_SOURCE})\\b)\\s*(kg/m³|kg/m3|g/cm³|g/cm3|g/mL|g/ml|lb/ft³|lb/ft3|lb/in³|lb/in3)(?![A-Za-z0-9/])`,
+  "giu"
+);
 
 const NORMALIZE_DENSITY_UNIT = {
   // Metric — Unicode + ASCII
@@ -34,10 +39,10 @@ const VOLUME_TO_M3 = {
 };
 
 const DENSITY_TARGET_UNITS = {
-  kg_m3: "lb/ft³",
-  g_cm3: "lb/in³",
-  lb_ft3: "kg/m³",
-  lb_in3: "g/cm³",
+  kg_m3: ["lb/ft³"],
+  g_cm3: ["lb/in³"],
+  lb_ft3: ["kg/m³"],
+  lb_in3: ["g/cm³"],
 };
 
 function splitDensityUnit(unit) {

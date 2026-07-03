@@ -47,6 +47,14 @@ describe("Data Size Converter", () => {
     }
   });
 
+  it("also matches word-based numbers", () => {
+    const samples = ["ten KB", "twelve MiB", "one hundred GB"];
+
+    for (const s of samples) {
+      expect(s.match(DATA_SIZE_REGEX)).not.toBeNull();
+    }
+  });
+
   // -----------------------------
   // NORMALIZATION
   // -----------------------------
@@ -107,14 +115,41 @@ describe("Data Size Converter", () => {
   // -----------------------------
   // TARGET UNIT MAP
   // -----------------------------
-  it("maps to metric target units", () => {
-    expect(DATA_SIZE_TARGET_UNITS.metric["gib"]).toBe("gb");
-    expect(DATA_SIZE_TARGET_UNITS.metric["mib"]).toBe("mb");
+  it("maps plain bytes to kb", () => {
+    expect(DATA_SIZE_TARGET_UNITS["b"]).toEqual(["kb"]);
+
+    const result = convertBytes(512, "b", DATA_SIZE_TARGET_UNITS["b"][0]);
+    expect(result.value).toBeCloseTo(0.512);
+    expect(result.unit).toBe("kb");
   });
 
-  it("maps to binary target units", () => {
-    expect(DATA_SIZE_TARGET_UNITS.binary["gb"]).toBe("gib");
-    expect(DATA_SIZE_TARGET_UNITS.binary["mb"]).toBe("mib");
+  it("maps to metric target units, plus binary neighbors above and below", () => {
+    expect(DATA_SIZE_TARGET_UNITS["gib"]).toEqual(["gb", "mib", "tib"]);
+    expect(DATA_SIZE_TARGET_UNITS["mib"]).toEqual(["mb", "kib", "gib"]);
+  });
+
+  it("maps to binary target units, plus metric neighbors above and below", () => {
+    expect(DATA_SIZE_TARGET_UNITS["gb"]).toEqual(["gib", "mb", "tb"]);
+    expect(DATA_SIZE_TARGET_UNITS["mb"]).toEqual(["mib", "kb", "gb"]);
+  });
+
+  it("omits the missing side at the top and bottom of each ladder", () => {
+    // "b" is the smallest unit — no unit below it
+    expect(DATA_SIZE_TARGET_UNITS["b"]).toEqual(["kb"]);
+
+    // "tb"/"tib" are the largest units — no unit above them
+    expect(DATA_SIZE_TARGET_UNITS["tb"]).toEqual(["tib", "gb"]);
+    expect(DATA_SIZE_TARGET_UNITS["tib"]).toEqual(["tb", "gib"]);
+  });
+
+  it("converts to every target for a unit with neighbors on both sides", () => {
+    const targets = DATA_SIZE_TARGET_UNITS["mb"];
+    const results = targets.map((to) => convertBytes(1, "mb", to));
+
+    expect(results.map((r) => r.unit)).toEqual(["mib", "kb", "gb"]);
+    expect(results[0].value).toBeCloseTo(0.9537, 4); // mb -> mib
+    expect(results[1].value).toBeCloseTo(1000);        // mb -> kb
+    expect(results[2].value).toBeCloseTo(0.001);        // mb -> gb
   });
 
   // -----------------------------

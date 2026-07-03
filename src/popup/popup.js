@@ -7,6 +7,7 @@ import {
   convertVelocity,
   convertArea,
   convertDensity,
+  convertBytes,
 } from "@/content/converters/index.js";
 import { defaultCategories } from "@/content/dom/walker";
 
@@ -17,6 +18,11 @@ import { defaultCategories } from "@/content/dom/walker";
 // Auto-conversion settings
 const autoConvert = document.getElementById("autoConvert");
 const status = document.getElementById("status");
+const openOptionsBtn = document.getElementById("openOptionsBtn");
+
+openOptionsBtn.addEventListener("click", () => {
+  chrome.runtime.openOptionsPage();
+});
 
 const categoryCheckboxes = {
   convertLength: document.getElementById("convertLength"),
@@ -27,6 +33,7 @@ const categoryCheckboxes = {
   convertCss: document.getElementById("convertCss"),
   convertArea: document.getElementById("convertArea"),
   convertDensity: document.getElementById('convertDensity'),
+  convertBytes: document.getElementById('convertBytes'),
 }
 
 // Adds eventlistener to save settings after each click
@@ -51,37 +58,6 @@ const manualValue = document.getElementById("manualValue");
 const swapUnitsBtn = document.getElementById("swapUnitsBtn");
 const resultValue = document.getElementById("resultValue");
 const resultUnit = document.getElementById("resultUnit");
-
-/* -----------------------------
-   SETTINGS LOADING
------------------------------ */
-
-chrome.storage.sync.get(
-  ["autoConvert", "enabledCategories"],
-  (data) => {
-    autoConvert.checked = data.autoConvert ?? false;
-
-    const cats = data.enabledCategories ?? defaultCategories;
-
-    const {
-      convertLength: lengthBox,
-      convertMass: massBox,
-      convertVolume: volumeBox,
-      convertVelocity: velocityBox,
-      convertTemperature: tempBox,
-      convertCss: cssBox,
-      convertArea: areaBox,
-    } = categoryCheckboxes;
-
-    lengthBox.checked = cats.convertLength;
-    massBox.checked = cats.convertMass;
-    volumeBox.checked = cats.convertVolume;
-    velocityBox.checked = cats.convertVelocity;
-    tempBox.checked = cats.convertTemperature;
-    cssBox.checked = cats.convertCss;
-    areaBox.checked = cats.convertArea;
-  }
-);
 
 /* -----------------------------
    SETTINGS SAVING
@@ -110,13 +86,14 @@ function showSaved() {
 
 const UNIT_MAP = {
   length: ["m", "cm", "km", "ft", "in", "mi"],
-  temperature: ["C", "F"],
+  temperature: ["C", "F", "K"],
   mass: ["g", "kg", "lb", "oz"],
   volume: ["ml", "l", "m³", "fl oz", "gal", "ft³"],
   velocity: ["m/s", "km/h", "mph", "ft/s"],
   css: ["px", "rem", "em", "vh", "vw"],
   area: ["mm²", "cm²", "m²", "km²", "in²", "ft²", "yd²", "mi²"],
   density: ["kg/m³", "g/cm³", "g/mL", "lb/ft³", "lb/in³"],
+  bytes: ["B", "KB", "KiB", "MB", "MiB", "GB", "GiB", "TB", "TiB"],
 };
 
 /* -----------------------------
@@ -150,9 +127,50 @@ function populateUnitDropdowns(category) {
 
 populateUnitDropdowns(manualCategory.value);
 
-manualCategory.addEventListener("change", () => {
-  populateUnitDropdowns(manualCategory.value);
-});
+/* -----------------------------
+   REMEMBER LAST MANUAL CONVERSION
+----------------------------- */
+
+// Restores the category/from/to/value the user last entered, so reopening
+// the popup picks up where they left off instead of resetting to defaults.
+function restoreLastManualConversion(last) {
+  if (!last || !UNIT_MAP[last.category]) return;
+
+  manualCategory.value = last.category;
+  populateUnitDropdowns(last.category);
+
+  if (UNIT_MAP[last.category].includes(last.fromUnit)) {
+    manualFrom.value = last.fromUnit;
+  }
+  if (UNIT_MAP[last.category].includes(last.toUnit)) {
+    manualTo.value = last.toUnit;
+  }
+  if (last.value !== undefined && last.value !== null) {
+    manualValue.value = last.value;
+  }
+
+  handleLiveConversion();
+}
+
+function saveManualConversionState() {
+  chrome.storage.sync.set({
+    lastManualConversion: {
+      category: manualCategory.value,
+      fromUnit: manualFrom.value,
+      toUnit: manualTo.value,
+      value: manualValue.value,
+    },
+  });
+}
+
+// Typing fires an "input" event per keystroke — debounce the save so it
+// doesn't spam chrome.storage.sync's write-rate limit while the live
+// preview (handleLiveConversion) still updates instantly.
+let saveValueTimeout = null;
+function debouncedSaveManualConversionState() {
+  clearTimeout(saveValueTimeout);
+  saveValueTimeout = setTimeout(saveManualConversionState, 400);
+}
 
 /* -----------------------------
    MANUAL CONVERSION LOGIC
@@ -187,6 +205,9 @@ function convertManual(category, value, fromUnit, toUnit) {
     case "density":
       return convertDensity(v, fromUnit, toUnit);
 
+    case "bytes":
+      return convertBytes(v, fromUnit, toUnit);
+
     default:
       return "Unsupported category.";
   }
@@ -203,7 +224,6 @@ function handleLiveConversion() {
   const value = manualValue.value.trim();
 
   if (value === "") {
-    console.log('No input value provided. Resetting result display:', resultValue, resultUnit);
     resultValue.textContent = "0";
     resultUnit.textContent = fromUnit;
     return;
@@ -221,13 +241,23 @@ function handleLiveConversion() {
   resultUnit.textContent = output.unit;
 }
 
-manualValue.addEventListener("input", handleLiveConversion);
-manualFrom.addEventListener("change", handleLiveConversion);
-manualTo.addEventListener("change", handleLiveConversion);
+manualValue.addEventListener("input", () => {
+  handleLiveConversion();
+  debouncedSaveManualConversionState();
+});
+manualFrom.addEventListener("change", () => {
+  handleLiveConversion();
+  saveManualConversionState();
+});
+manualTo.addEventListener("change", () => {
+  handleLiveConversion();
+  saveManualConversionState();
+});
 
 manualCategory.addEventListener("change", () => {
   populateUnitDropdowns(manualCategory.value);
   handleLiveConversion();
+  saveManualConversionState();
 });
 
 swapUnitsBtn.addEventListener("click", () => {
@@ -236,7 +266,52 @@ swapUnitsBtn.addEventListener("click", () => {
   manualTo.value = currentFrom;
 
   handleLiveConversion();
+  saveManualConversionState();
 });
 
-// Run a starting calculation loop once on popup load
+// Run a starting calculation loop once on popup load (immediately, before
+// the async storage read resolves — restoreLastManualConversion() will
+// re-run this again if a previous conversion is found).
 handleLiveConversion();
+
+/* -----------------------------
+   SETTINGS LOADING
+----------------------------- */
+
+// Placed last, after every function/constant it references (populateUnitDropdowns,
+// handleLiveConversion, restoreLastManualConversion, UNIT_MAP) has already been
+// defined above — the bundler doesn't preserve function-declaration hoisting
+// once minified, so calling any of these before their own definition runs
+// would throw a "Cannot access before initialization" error.
+chrome.storage.sync.get(
+  ["autoConvert", "enabledCategories", "lastManualConversion"],
+  (data) => {
+    autoConvert.checked = data.autoConvert ?? false;
+
+    const cats = data.enabledCategories ?? defaultCategories;
+
+    const {
+      convertLength: lengthBox,
+      convertMass: massBox,
+      convertVolume: volumeBox,
+      convertVelocity: velocityBox,
+      convertTemperature: tempBox,
+      convertCss: cssBox,
+      convertArea: areaBox,
+      convertDensity: densityBox,
+      convertBytes: bytesBox,
+    } = categoryCheckboxes;
+
+    lengthBox.checked = cats.convertLength;
+    massBox.checked = cats.convertMass;
+    volumeBox.checked = cats.convertVolume;
+    velocityBox.checked = cats.convertVelocity;
+    tempBox.checked = cats.convertTemperature;
+    cssBox.checked = cats.convertCss;
+    areaBox.checked = cats.convertArea;
+    densityBox.checked = cats.convertDensity;
+    bytesBox.checked = cats.convertBytes;
+
+    restoreLastManualConversion(data.lastManualConversion);
+  }
+);

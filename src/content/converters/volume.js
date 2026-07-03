@@ -1,4 +1,9 @@
-const VOLUME_REGEX = /\b(\d+(?:\.\d+)?)\s?(milliliters?|millilitres?|mils|mls|ml|liters?|litres?|l|m(?:³|3|\^3)|fl oz|gallon|gal|ft(?:³|3|\^3)|cf|cu ft|cu\.ft|cu\. ft)(?=[)\].,;:!? ]|$)/gi;
+import { WORD_NUMBER_SOURCE } from "../utility/wordsToNumbers.js";
+
+const VOLUME_REGEX = new RegExp(
+  `\\b(\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER_SOURCE})\\b)\\s?(milliliters?|millilitres?|mils|mls|ml|liters?|litres?|l|m(?:³|3|\\^3)|fl oz|gallon|gal|ft(?:³|3|\\^3)|cf|cu ft|cu\\.ft|cu\\. ft)(?=[)\\].,;:!? ]|$)`,
+  "gi"
+);
 
 // Normalize all unit spellings to canonical forms
 const NORMALIZE_VOLUME_UNIT = {
@@ -51,12 +56,12 @@ const M3_TO_UNIT = {
 };
 
 const VOLUME_TARGET_UNITS = {
-  ml: "fl oz",
-  l: "gal",
-  "m³": "ft³",
-  "fl oz": "ml",
-  gal: "l",
-  "ft³": "m³",
+  ml: ["fl oz"],
+  l: ["gal"],
+  "m³": ["ft³"],
+  "fl oz": ["ml"],
+  gal: ["l"],
+  "ft³": ["m³"],
 };
 
 function convertVolume(value, fromUnit, toUnit) {

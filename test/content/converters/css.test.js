@@ -26,6 +26,21 @@ describe("CSS unit converter", () => {
     }
   });
 
+  it("regex also matches word-based numbers", () => {
+    const cases = [
+      ["sixteen px", "sixteen", "px"],
+      ["thirty-two rem", "thirty-two", "rem"],
+      ["two em", "two", "em"],
+    ];
+
+    for (const [sample, expectedNumber, expectedUnit] of cases) {
+      reset(CSS_UNIT_REGEX);
+      const match = CSS_UNIT_REGEX.exec(sample);
+      expect(match[1]).toBe(expectedNumber);
+      expect(match[2]).toBe(expectedUnit);
+    }
+  });
+
   it("does not match inside URLs or composite units", () => {
     const badSamples = [
       "https://example.com/16px/image",

@@ -134,4 +134,16 @@ describe("Area regex", () => {
     const matches = [...text.matchAll(AREA_REGEX)];
     expect(matches.length).toBe(0);
   });
+
+  it("also matches word-based numbers", () => {
+    const text = `
+      The room is twenty m².
+      The lot is one hundred ft2.
+    `;
+
+    const matches = [...text.matchAll(AREA_REGEX)].map(m => m[0]);
+
+    expect(matches).toContain("twenty m²");
+    expect(matches).toContain("one hundred ft2");
+  });
 });

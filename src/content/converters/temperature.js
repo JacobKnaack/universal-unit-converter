@@ -1,4 +1,13 @@
-const TEMPERATURE_REGEX = /\b(\d+(?:\.\d+)?)\s?(c|f|°c|°f|celsius|fahrenheit)\b(?!\/[a-z])/gi;
+import { WORD_NUMBER_SOURCE } from "../utility/wordsToNumbers.js";
+
+// Note: bare "k" is deliberately NOT matched here (unlike c/f) — it would
+// collide constantly with common shorthand like "10k views" or "$10k".
+// Kelvin is still fully supported as a conversion target/manual unit below,
+// it's just never auto-detected from page text.
+const TEMPERATURE_REGEX = new RegExp(
+  `\\b(\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER_SOURCE})\\b)\\s?(c|f|°c|°f|celsius|fahrenheit)\\b(?!/[a-z])`,
+  "gi"
+);
 
 const NORMALIZE_TEMP = {
   c: "C",
@@ -6,12 +15,28 @@ const NORMALIZE_TEMP = {
   celsius: "C",
   f: "F",
   "°f": "F",
-  fahrenheit: "F"
+  fahrenheit: "F",
+  k: "K",
+  "°k": "K",
+  kelvin: "K",
 };
 
 const TEMPERATURE_TARGET_UNITS = {
-  C: "F",
-  F: "C",
+  C: ["F", "K"],
+  F: ["C", "K"],
+  K: ["C", "F"],
+};
+
+const TO_CELSIUS = {
+  C: (v) => v,
+  F: (v) => ((v - 32) * 5) / 9,
+  K: (v) => v - 273.15,
+};
+
+const FROM_CELSIUS = {
+  C: (v) => v,
+  F: (v) => (v * 9) / 5 + 32,
+  K: (v) => v + 273.15,
 };
 
 function convertTemperature(value, fromUnit, toUnit) {
@@ -25,23 +50,12 @@ function convertTemperature(value, fromUnit, toUnit) {
     return { value, unit: to };
   }
 
-  // C → F
-  if (from === "C" && to === "F") {
-    return {
-      value: (value * 9) / 5 + 32,
-      unit: "F"
-    };
-  }
+  const celsius = TO_CELSIUS[from](value);
 
-  // F → C
-  if (from === "F" && to === "C") {
-    return {
-      value: ((value - 32) * 5) / 9,
-      unit: "C"
-    };
-  }
-
-  return null;
+  return {
+    value: FROM_CELSIUS[to](celsius),
+    unit: to,
+  };
 }
 
 export {

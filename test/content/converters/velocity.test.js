@@ -2,6 +2,21 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { walkAndConvert, revertAllConvertedText } from "@/content/dom/walker.js";
 import { VELOCITY_REGEX } from "@/content/converters/velocity.js";
 
+// The tooltip is a single shared element appended to <body> and populated
+// on hover, not nested inside each .uuc-unit span, so hover each in turn.
+function tooltipsByMatch() {
+  const spans = document.querySelectorAll(".uuc-unit");
+  return Array.from(spans).reduce((acc, s) => {
+    s.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    const row = document.querySelector(".uuc-tooltip-row");
+    acc[s.textContent] = {
+      value: row.querySelector(".uuc-tooltip-value").textContent,
+      unit: row.querySelector(".uuc-tooltip-unit").textContent,
+    };
+    return acc;
+  }, {});
+}
+
 describe("Speed conversion", () => {
   let map;
 
@@ -22,38 +37,45 @@ describe("Speed conversion", () => {
   it("converts metric → imperial speed units", () => {
     walkAndConvert(document.body, map);
 
-    const text = document.body.textContent;
+    const byMatch = tooltipsByMatch();
 
     // m/s → mph
-    expect(text).toMatch(/10 m\/s \(\d+(\.\d+)? mph\)/);
+    expect(byMatch["10 m/s"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["10 m/s"].unit).toBe("mph");
 
     // km/h → mph
-    expect(text).toMatch(/100 km\/h \(\d+(\.\d+)? mph\)/);
+    expect(byMatch["100 km/h"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["100 km/h"].unit).toBe("mph");
 
     // mps → mph (ASCII fallback)
-    expect(text).toMatch(/12 mps \(\d+(\.\d+)? mph\)/);
+    expect(byMatch["12 mps"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["12 mps"].unit).toBe("mph");
   });
 
   it("converts imperial → metric speed units", () => {
     walkAndConvert(document.body, map);
 
-    const text = document.body.textContent;
+    const byMatch = tooltipsByMatch();
 
     // mph → km/h
-    expect(text).toMatch(/30 mph \(\d+(\.\d+)? km\/h\)/);
+    expect(byMatch["30 mph"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["30 mph"].unit).toBe("km/h");
 
     // ft/s → m/s
-    expect(text).toMatch(/50 ft\/s \(\d+(\.\d+)? m\/s\)/);
+    expect(byMatch["50 ft/s"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["50 ft/s"].unit).toBe("m/s");
 
     // fps → m/s (ASCII fallback)
-    expect(text).toMatch(/40 fps \(\d+(\.\d+)? m\/s\)/);
+    expect(byMatch["40 fps"].value).toMatch(/^\d+(\.\d+)?$/);
+    expect(byMatch["40 fps"].unit).toBe("m/s");
   });
 
   it("stores original text in the map", () => {
     walkAndConvert(document.body, map);
 
-    const node = document.querySelector("p").firstChild;
-    expect(map.has(node)).toBe(true);
+    const wrapper = document.querySelector(".uuc-text-wrapper");
+    expect(map.has(wrapper)).toBe(true);
+    expect(map.get(wrapper)).toContain("10 m/s");
   });
 
   it("reverts converted speed text back to original", () => {
@@ -69,8 +91,9 @@ describe("Speed conversion", () => {
     expect(text).toContain("50 ft/s");
     expect(text).toContain("40 fps");
 
-    // Ensure no converted parentheses remain
-    expect(text.includes("(")).toBe(false);
+    // No leftover wrapper/tooltip spans
+    expect(document.querySelector(".uuc-unit")).toBeNull();
+    expect(document.querySelector(".uuc-text-wrapper")).toBeNull();
   });
 
   it("regex matches all supported speed units", () => {
@@ -89,5 +112,19 @@ describe("Speed conversion", () => {
     for (const s of samples) {
     expect(re.test(s)).toBe(true);
     }
+  });
+
+  it("converts word-based numbers, leaving the original wording as the visible text", () => {
+    document.body.innerHTML = `<p>The car was traveling at thirty mph.</p>`;
+
+    walkAndConvert(document.body, map);
+
+    const span = document.querySelector(".uuc-unit");
+    // Visible text is exactly what was written — never rewritten to "30 mph"
+    expect(span.textContent).toBe("thirty mph");
+
+    const byMatch = tooltipsByMatch();
+    expect(byMatch["thirty mph"].unit).toBe("km/h");
+    expect(parseFloat(byMatch["thirty mph"].value)).toBeCloseTo(48.28, 1);
   });
 });
