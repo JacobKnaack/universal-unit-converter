@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Unit Converter - Chrome Web Store</title>
+  <link rel="stylesheet" href="style/index.css">
+</head>
+<body>
+  <main class="app-container">
+  
+    <!-- Hero Header Block -->
+    <header class="app-hero">
+      <div class="app-icon-wrapper">
+        <!-- Replace this with your icon-128.png when deployed -->
+        <img src="images/icon-128.png" alt="Universal Unit Converter Icon" class="app-icon">
+      </div>
+      <div class="app-meta">
+        <h1>Universal Unit Converter</h1>
+        <h2>Automatic unit conversions as you browse.</h2>
+        <div class="app-badge-row">
+          <span class="badge badge-primary">Free</span>
+          <span class="badge badge-secondary">Productivity</span>
+        </div>
+        <a href="https://chrome.google.com/webstore" class="btn-get">Add to Chrome</a>
+      </div>
+    </header>
+  
+    <hr class="divider">
+  
+    <!-- Highlights Grid Row -->
+    <section class="app-highlights">
+      <div class="highlight-item">
+        <h3>DEVELOPER</h3>
+        <p class="highlight-main">Jacob Knaack</p>
+        <p class="highlight-sub">Privacy First</p>
+      </div>
+      <div class="highlight-item">
+        <h3>PLATFORM</h3>
+        <p class="highlight-main">Chrome</p>
+        <p class="highlight-sub">Extension</p>
+      </div>
+      <div class="highlight-item">
+        <h3>AGE</h3>
+        <p class="highlight-main">4+</p>
+        <p class="highlight-sub">Everyone</p>
+      </div>
+    </section>
+  
+    <hr class="divider">
+  
+    <!-- Screenshots Section -->
+    <section class="app-section">
+      <h2 class="section-title">Screenshots</h2>
+      <div class="screenshot-gallery">
+        <div class="screenshot-container">
+          <img src="images/screenshot-1-manual-conversion.png" alt="Screenshot 1">
+        </div>
+        <div class="screenshot-container">
+          <img src="images/screenshot-2-automatic-conversion.png" alt="Screenshot 2">
+        </div>
+        <div class="screenshot-container">
+          <img src="images/screenshot-3-settings.png" alt="Screenshot 3">
+        </div>
+      </div>
+    </section>
+  
+    <hr class="divider">
+  
+    <!-- Description Text Block -->
+    <section class="app-section">
+      <h2 class="section-title">Description</h2>
+      <div class="app-description">
+        <p>
+          Streamline your browsing workflow with <strong>Universal Unit Converter</strong>. Designed to sit subtly within
+          your
+          browser ecosystem, this expansion intuitively processes page context to render local physical conversions
+          smoothly
+          on the fly without any manual copying and pasting.
+        </p>
+        <p>
+          Whether analyzing scientific layouts, viewing foreign marketplace pricing, or managing text metrics, customize
+          your
+          global defaults directly through the extension's sleek interface dashboard.
+        </p>
+      </div>
+    </section>
+  
+    <hr class="divider">
+  
+    <!-- Information Detailed List -->
+    <section class="app-section">
+      <h2 class="section-title">Information</h2>
+      <div class="info-list">
+        <div class="info-row">
+          <span class="info-label">Seller</span>
+          <span class="info-value">Universal Unit Converter</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Size</span>
+          <span class="info-value">Lightweight (&lt; 1 MB)</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Category</span>
+          <span class="info-value">Productivity Utilities</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Compatibility</span>
+          <span class="info-value">Requires Chrome Browser (Manifest V3)</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Languages</span>
+          <span class="info-value">English</span>
+        </div>
+      </div>
+    </section>
+  
+    <!-- Footer Links -->
+    <footer class="app-footer">
+      <p>© <span id="current-year"></span> Universal Unit Converter. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="privacy-policy.html">Privacy Policy</a>
+      </div>
+    </footer>
+  
+  </main>
+  <script>
+    const currentYearEl = document.getElementById('current-year');
+    const currentYear = new Date().getFullYear();
+    currentYearEl.textContent = currentYear;
+  </script>
+</body>
+</html>

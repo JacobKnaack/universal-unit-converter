@@ -1,0 +1,262 @@
+/* Core Structural Layout & Reset */
+body {
+  font-family: "Inter", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #ffffff;
+  color: #20232a;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-container {
+  max-width: 740px;
+  width: 100%;
+  padding: 60px 30px;
+  box-sizing: border-box;
+}
+
+hr.divider {
+  border: 0;
+  border-top: 1px solid #e9e9ee;
+  margin: 30px 0;
+}
+
+/* App Store Page Header Setup */
+.app-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.app-icon-wrapper {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.app-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 22%;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.18);
+}
+
+.app-meta h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  margin: 0 0 6px 0;
+}
+
+.app-meta h2 {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+}
+
+.app-badge-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: none;
+  letter-spacing: 0.2px;
+}
+
+.badge-primary {
+  background-color: #eef2ff;
+  color: #4338ca;
+}
+
+.badge-secondary {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Call To Action Buttons */
+.btn-get {
+  display: inline-block;
+  background-color: #4f46e5;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.btn-get:hover {
+  background-color: #4338ca;
+}
+
+/* Highlights Grid */
+.app-highlights {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+
+.highlight-item {
+  border-top: 2px solid #4f46e5;
+  padding-top: 10px;
+}
+
+.highlight-item h3 {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.4px;
+  margin: 0 0 4px 0;
+}
+
+.highlight-item .highlight-main {
+  font-size: 19px;
+  font-weight: 700;
+  color: #20232a;
+  margin: 0;
+}
+
+.highlight-item .highlight-sub {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0 0 0;
+}
+
+/* Sections Structure */
+.app-section {
+  width: 100%;
+}
+
+.section-title {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  margin: 0 0 16px 0;
+  padding-left: 12px;
+  border-left: 4px solid #4f46e5;
+}
+
+.app-description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #3f3f46;
+}
+
+.app-description p {
+  margin: 0 0 16px 0;
+}
+
+/* Gallery Display Setup */
+.screenshot-gallery {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.screenshot-container {
+  width: 420px;
+  height: 260px;
+  background-color: #f3f4f6;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 14px;
+  border: 1px solid #e5e7eb;
+}
+.screenshot-container img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* Metadata Technical List */
+.info-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #e9e9ee;
+  font-size: 14px;
+}
+
+.info-row:last-child {
+  border-bottom: 0;
+}
+
+.info-label {
+  color: #6b7280;
+}
+
+.info-value {
+  color: #20232a;
+  font-weight: 500;
+}
+
+/* Page Footer Elements */
+.app-footer {
+  margin-top: 60px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.footer-links {
+  margin-top: 8px;
+  display: flex;
+  gap: 16px;
+}
+
+.footer-links a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+/* Mobile Layout Adaptations */
+@media (max-width: 600px) {
+  .app-hero {
+    gap: 20px;
+  }
+
+  .app-icon-wrapper {
+    width: 90px;
+    height: 90px;
+  }
+
+  .app-icon {
+    border-radius: 20px;
+  }
+
+  .app-meta h1 {
+    font-size: 22px;
+  }
+
+  .screenshot-placeholder {
+    width: 280px;
+    height: 175px;
+  }
+}
