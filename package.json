@@ -9,7 +9,7 @@
     "dev:main": "vite build --watch --config vite.config.mjs",
     "dev:content": "vite build --watch --config vite.content.config.mjs",
     "dev": "cross-env NODE_ENV=dev concurrently -k \"npm run dev:main\" \"npm run dev:content\"",
-    "test:server": "http-server -p 8080 -c-1"
+    "serve": "http-server -p 8080 -c-1"
   },
   "keywords": [],
   "author": "",
