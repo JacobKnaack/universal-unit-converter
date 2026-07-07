@@ -116,15 +116,26 @@ document.addEventListener("mouseout", (event) => {
   tooltipEl.style.display = "none";
 });
 
+// DENSITY_TARGET_UNITS values are the pretty symbol form (e.g. "lb/ft³")
+// but a user override is stored/keyed in the ascii id space (e.g. "lb_ft3",
+// see options/tooltipTargetsConfig.js) — prettify override target ids back
+// to the symbol form so overridden density tooltips still render nicely.
+const DENSITY_ID_TO_SYMBOL = {
+  kg_m3: "kg/m³",
+  g_cm3: "g/cm³",
+  lb_ft3: "lb/ft³",
+  lb_in3: "lb/in³",
+};
+
 const CONVERTERS = [
-  { 
+  {
     key: 'convertVelocity',
     regex: VELOCITY_REGEX,
     convert: convertVelocity,
     normalize: (u) => NORMALIZE_VELOCITY[u],
     getTarget: (from) => VELOCITY_TARGET_UNITS[from],
   },
-  { 
+  {
     key: 'convertCss',
     regex: CSS_UNIT_REGEX,
     convert: convertCssUnits,
@@ -149,26 +160,27 @@ const CONVERTERS = [
     convert: convertMass,
     getTarget: (from) => MASS_TARGET_UNITS[from],
   },
-  { 
+  {
     key: 'convertVolume',
     regex: VOLUME_REGEX,
     convert: convertVolume,
     normalize: (u) => NORMALIZE_VOLUME_UNIT[u],
     getTarget: (from) => VOLUME_TARGET_UNITS[from],
   },
-  { 
+  {
     key: 'convertArea',
     regex: AREA_REGEX,
     convert: convertArea,
     normalize: (u) => NORMALIZE_AREA_UNIT[u],
     getTarget: (from) => AREA_TARGET_UNITS[from],
   },
-  { 
+  {
     key: 'convertDensity',
     regex: DENSITY_REGEX,
     convert: convertDensity,
     normalize: (u) => NORMALIZE_DENSITY_UNIT[u],
     getTarget: (from) => DENSITY_TARGET_UNITS[from],
+    prettifyOverrideTarget: (id) => DENSITY_ID_TO_SYMBOL[id] ?? id,
   },
   {
     key: 'convertBytes',
@@ -198,7 +210,7 @@ function revertAllConvertedText(textMap) {
   textMap.clear();
 }
 
-function enableConversion(converter, enabledCategories = defaultCategories) {
+function enableConversion(converter, enabledCategories = defaultCategories, tooltipTargetOverrides = null) {
   if (converter.observer) {
     converter.observer.disconnect();
   }
@@ -207,7 +219,7 @@ function enableConversion(converter, enabledCategories = defaultCategories) {
     converter.textMap.clear();
   }
   // Run immediately
-  walkAndConvert(document.body, converter.textMap, enabledCategories);
+  walkAndConvert(document.body, converter.textMap, enabledCategories, tooltipTargetOverrides);
 
   // Start observing
   converter.observer = new MutationObserver(mutations => {
@@ -218,7 +230,7 @@ function enableConversion(converter, enabledCategories = defaultCategories) {
           !node.classList.contains(WRAPPER_CLASS) &&
           !SKIP_TAGS.has(node.tagName)
         ) {
-          walkAndConvert(node, converter.textMap, enabledCategories);
+          walkAndConvert(node, converter.textMap, enabledCategories, tooltipTargetOverrides);
         }
       });
     }
@@ -277,7 +289,7 @@ function buildConvertedFragment(text) {
   return fragment;
 }
 
-function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCategories) {
+function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCategories, tooltipTargetOverrides = null) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, (node) =>
     isSkippableTextNode(node) ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT
   );
@@ -307,7 +319,10 @@ function walkAndConvert(root, textMap = new Map(), enabledCategories = defaultCa
       const normalized = converter.normalize ? converter.normalize(from) : from;
       if (!normalized) return match;
 
-      const targets = converter.getTarget ? converter.getTarget(normalized) : null;
+      const override = tooltipTargetOverrides?.[converter.key]?.[normalized];
+      const targets = override
+        ? (converter.prettifyOverrideTarget ? override.map(converter.prettifyOverrideTarget) : override)
+        : (converter.getTarget ? converter.getTarget(normalized) : null);
       if (!targets || !targets.length) return match;
 
       const value = parseNumberToken(num);

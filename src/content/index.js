@@ -11,14 +11,17 @@ const converter = {
 }
 
 // Load setting and initialize behavior
-chrome.storage.sync.get(['autoConvert', 'enabledCategories', 'tooltipSettings'], ({ autoConvert, enabledCategories, tooltipSettings }) => {
-  applyTooltipSettings(tooltipSettings);
+chrome.storage.sync.get(
+  ['autoConvert', 'enabledCategories', 'tooltipSettings', 'tooltipTargetUnits'],
+  ({ autoConvert, enabledCategories, tooltipSettings, tooltipTargetUnits }) => {
+    applyTooltipSettings(tooltipSettings);
 
-  const categories = enabledCategories ?? defaultEnabled;
-  if (autoConvert) {
-    enableConversion(converter, categories);
-  };
-});
+    const categories = enabledCategories ?? defaultEnabled;
+    if (autoConvert) {
+      enableConversion(converter, categories, tooltipTargetUnits ?? null);
+    };
+  }
+);
 
 // Listen for changes from popup/options
 chrome.storage.onChanged.addListener((changes) => {
@@ -28,15 +31,16 @@ chrome.storage.onChanged.addListener((changes) => {
 
   const autoConvertChanged = "autoConvert" in changes;
   const categoriesChanged = 'enabledCategories' in changes;
+  const targetUnitsChanged = 'tooltipTargetUnits' in changes;
 
-  if (!autoConvertChanged && !categoriesChanged) return;
+  if (!autoConvertChanged && !categoriesChanged && !targetUnitsChanged) return;
 
-  chrome.storage.sync.get(["autoConvert", "enabledCategories"], (data) => {
+  chrome.storage.sync.get(["autoConvert", "enabledCategories", "tooltipTargetUnits"], (data) => {
     const enabled = data.autoConvert === true;
     const enabledCategories = data.enabledCategories ?? defaultEnabled;
 
     if (enabled) {
-      enableConversion(converter, enabledCategories);
+      enableConversion(converter, enabledCategories, data.tooltipTargetUnits ?? null);
     } else {
       disableConversion(converter);
     }

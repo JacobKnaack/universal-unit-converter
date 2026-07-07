@@ -17,7 +17,7 @@
     body {
       font-family: system-ui, sans-serif;
       padding: 14px;
-      width: 260px;
+      width: 300px;
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -117,6 +117,9 @@
     }
     .form-group select {
       padding: 10px 40px 10px 14px; /* Extra right padding makes room for a custom arrow */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       /* Custom Arrow Graphic (Optional but highly recommended when using appearance: none) */
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
       background-repeat: no-repeat;
@@ -301,6 +304,6 @@
     <button type="button" id="openOptionsBtn" class="link-button">More settings in Options →</button>
   </div>
 
-  <script src="assets/popup.js"></script>
+  <script type="module" src="assets/popup.js"></script>
 </body>
 </html>

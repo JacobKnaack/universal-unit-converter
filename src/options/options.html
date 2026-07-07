@@ -42,6 +42,48 @@
             display: grid;
             position: static;
         }
+
+        #tooltipTargets {
+            margin-top: 10px;
+        }
+        .target-category {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 8px;
+            padding: 4px 12px;
+        }
+        .target-category > summary {
+            font-weight: bold;
+            cursor: pointer;
+            padding: 8px 0;
+        }
+        .target-source {
+            padding: 8px 0;
+            border-top: 1px solid #eee;
+        }
+        .target-source:first-of-type {
+            border-top: none;
+        }
+        .target-source-label {
+            font-weight: normal;
+            margin: 0 0 6px 0;
+            display: block;
+        }
+        .target-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 14px;
+        }
+        .target-checkboxes label {
+            font-weight: normal;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 0;
+        }
+        .target-checkboxes input {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -79,7 +121,13 @@
         </div>
     </div>
 
+    <label>Tooltip Conversion Targets</label>
+    <p style="font-weight: normal; margin: 4px 0 0 0; color: #555;">
+        Choose which unit(s) each detected value should be converted to in the on-page tooltip.
+    </p>
+    <div id="tooltipTargets"></div>
+
     <p id="status" style="color: green; margin-top: 10px"></p>
-    <script src="assets/options.js"></script>
+    <script type="module" src="assets/options.js"></script>
 </body>
 </html>

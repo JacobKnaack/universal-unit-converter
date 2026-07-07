@@ -96,6 +96,62 @@ const UNIT_MAP = {
   bytes: ["B", "KB", "KiB", "MB", "MiB", "GB", "GiB", "TB", "TiB"],
 };
 
+// Display labels for each abbreviation above. Dropdown options show these
+// full names while still submitting the abbreviation as the option value,
+// since converter functions and saved state key off the abbreviation.
+const UNIT_LABELS = {
+  m: "Meters",
+  cm: "Centimeters",
+  km: "Kilometers",
+  ft: "Feet",
+  in: "Inches",
+  mi: "Miles",
+  C: "Celsius",
+  F: "Fahrenheit",
+  K: "Kelvin",
+  g: "Grams",
+  kg: "Kilograms",
+  lb: "Pounds",
+  oz: "Ounces",
+  ml: "Milliliters",
+  l: "Liters",
+  "m³": "Cubic Meters",
+  "fl oz": "Fluid Ounces",
+  gal: "Gallons",
+  "ft³": "Cubic Feet",
+  "m/s": "Meters per Second",
+  "km/h": "Kilometers per Hour",
+  mph: "Miles per Hour",
+  "ft/s": "Feet per Second",
+  px: "Pixels",
+  rem: "Rem",
+  em: "Em",
+  vh: "Viewport Height",
+  vw: "Viewport Width",
+  "mm²": "Square Millimeters",
+  "cm²": "Square Centimeters",
+  "m²": "Square Meters",
+  "km²": "Square Kilometers",
+  "in²": "Square Inches",
+  "ft²": "Square Feet",
+  "yd²": "Square Yards",
+  "mi²": "Square Miles",
+  "kg/m³": "Kilograms per Cubic Meter",
+  "g/cm³": "Grams per Cubic Centimeter",
+  "g/mL": "Grams per Milliliter",
+  "lb/ft³": "Pounds per Cubic Foot",
+  "lb/in³": "Pounds per Cubic Inch",
+  B: "Bytes",
+  KB: "Kilobytes",
+  KiB: "Kibibytes",
+  MB: "Megabytes",
+  MiB: "Mebibytes",
+  GB: "Gigabytes",
+  GiB: "Gibibytes",
+  TB: "Terabytes",
+  TiB: "Tebibytes",
+};
+
 /* -----------------------------
    POPULATE FROM/TO DROPDOWNS
 ----------------------------- */
@@ -107,13 +163,17 @@ function populateUnitDropdowns(category) {
   manualTo.innerHTML = "";
 
   units.forEach((u) => {
+    const label = UNIT_LABELS[u] ?? u;
+
     const opt1 = document.createElement("option");
     opt1.value = u;
-    opt1.textContent = u;
+    opt1.textContent = label;
+    opt1.title = label;
 
     const opt2 = document.createElement("option");
     opt2.value = u;
-    opt2.textContent = u;
+    opt2.textContent = label;
+    opt2.title = label;
 
     manualFrom.appendChild(opt1);
     manualTo.appendChild(opt2);

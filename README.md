@@ -6,6 +6,8 @@ A Chrome extension that automatically converts units on any webpage into your pr
 
 - **Tooltip‑based conversion** — detected units get a purple underline; the page text itself is never altered, and hovering shows the converted value(s)  
 - **Multiple target units per conversion** — e.g. hovering over "3 MB" shows MiB, KB, and GB together, laid out as a two‑column table  
+- **Configurable tooltip targets** — the Options page lets you choose exactly which unit(s) each detected value converts to, per source unit, per category; unconfigured units fall back to sensible shipped defaults  
+- **Manual Conversion form with full unit names** — the popup's From/To dropdowns display readable names ("Kilometers", "Fluid Ounces") instead of raw abbreviations, with the full name available as a hover tooltip if a longer label gets truncated  
 - **Locale‑aware number formatting** — converted values use the user's own locale for thousands/decimal separators (e.g. `512,000.00` vs. `512.000,00`)  
 - **Viewport‑aware tooltip positioning** — tooltips flip to stay on‑screen instead of spilling off the edge of the page  
 - **Per‑category toggles** — enable or disable conversions for length, mass, volume, velocity, temperature, CSS units, area, density, and data sizes (bytes)  
@@ -60,7 +62,7 @@ A Chrome extension that automatically converts units on any webpage into your pr
 ### **Data Size**
 
 - Bytes, KB/KiB, MB/MiB, GB/GiB, TB/TiB  
-- Each unit converts to its metric↔binary crossover (e.g. KB ↔ KiB) plus the unit directly above and below it in the same system, all shown together in the tooltip  
+- By default, each unit converts to its metric↔binary crossover (e.g. KB ↔ KiB) plus the unit directly above and below it in the same system, all shown together in the tooltip — this is fully customizable per unit from the Options page  
 
 ## How It Works
 
@@ -95,7 +97,12 @@ The popup allows you to configure:
 
 - **Auto Convert** — enable/disable automatic conversions on the page  
 - **Per‑category toggles** — choose which unit types to convert (length, temperature, mass, volume, velocity, CSS units, area, density, bytes)  
-- **Manual Conversion** — a standalone from/to converter with live results, independent of the auto‑convert toggle  
+- **Manual Conversion** — a standalone from/to converter with live results, independent of the auto‑convert toggle; From/To dropdowns show full unit names rather than abbreviations  
+
+The Options page (`chrome.runtime.openOptionsPage()`, linked from the popup) additionally lets you configure:
+
+- **Tooltip appearance** — theme (dark/light), underline color, and tooltip font size, with a live preview  
+- **Tooltip Conversion Targets** — a collapsible section per category; for each unit the extension can detect, check which other unit(s) in that category should appear in the tooltip. Unchecking every target for a unit suppresses its tooltip entirely (the text is left as plain, unconverted). Anything left unconfigured uses the shipped defaults described above  
 
 All settings are stored in `chrome.storage.sync` and applied instantly across all tabs.
 
@@ -103,7 +110,8 @@ All settings are stored in `chrome.storage.sync` and applied instantly across al
 
 - Built with modern ES modules  
 - Fully tested with Vitest  
-- Modular converter architecture (`length.js`, `mass.js`, `velocity.js`, `bytes.js`, etc.) — each exposes an `X_TARGET_UNITS` map of `{ fromUnit: [toUnit, ...] }`, so a single source unit can render multiple converted values in the tooltip  
+- Modular converter architecture (`length.js`, `mass.js`, `velocity.js`, `bytes.js`, etc.) — each exposes an `X_TARGET_UNITS` map of `{ fromUnit: [toUnit, ...] }` as the shipped default, so a single source unit can render multiple converted values in the tooltip  
+- User overrides of those defaults are read from `chrome.storage.sync` (`tooltipTargetUnits`, keyed by category → source unit → target unit ids) and take priority over the hardcoded map at conversion time; `src/options/tooltipTargetsConfig.js` is the single source of truth the Options page UI is generated from, importing each category's default target map directly so it can't drift out of sync  
 - Regex‑driven parsing with normalization for ASCII and Unicode variants  
 - Collision‑safe matching (no interference between length/velocity/CSS units)  
 - Robust DOM walker with reversible text mapping and a marker‑based pipeline so multiple converters can safely run over the same text node  
