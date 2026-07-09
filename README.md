@@ -44,6 +44,8 @@ A Chrome extension that automatically converts units on any webpage into your pr
 
 - ml, L, m³  
 - fl oz, gal, ft³  
+- Cooking/serving units: quarts, cups, teaspoons, tablespoons  
+- Pints and gills — US customary and imperial variants are tracked separately (`pt`/`gi` vs. `imp pt`/`imp gi`), since they differ in size  
 
 ### **Velocity**
 

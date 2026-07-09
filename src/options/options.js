@@ -80,7 +80,10 @@ function renderTooltipTargets(savedOverrides) {
 
       const rowLabel = document.createElement("label");
       rowLabel.className = "target-source-label";
-      rowLabel.textContent = `When we detect ${category.labels[sourceId]}, show conversions to:`;
+      const sourceUnitName = category.labels[sourceId];
+      rowLabel.textContent = sourceUnitName === 'Kelvin'
+        ? 'We do not automatically convert Kelvin due to difficulty validating the page text'
+        : `When we detect ${sourceUnitName}, show conversions to:`;
       row.appendChild(rowLabel);
 
       const checkboxGroup = document.createElement("div");
@@ -96,7 +99,8 @@ function renderTooltipTargets(savedOverrides) {
           checkbox.dataset.category = category.key;
           checkbox.dataset.source = sourceId;
           checkbox.dataset.target = targetId;
-          checkbox.checked = selected.includes(targetId);
+          checkbox.checked = sourceUnitName !== 'Kelvin' && selected.includes(targetId);
+          if (sourceUnitName === 'Kelvin') checkbox.disabled = true;
           checkbox.addEventListener("change", saveTooltipTargets);
 
           optionLabel.appendChild(checkbox);

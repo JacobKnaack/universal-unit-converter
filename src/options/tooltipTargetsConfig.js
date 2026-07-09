@@ -62,6 +62,9 @@ const TOOLTIP_TARGET_CATEGORIES = [
     labels: {
       ml: "Milliliters", l: "Liters", "m³": "Cubic Meters",
       "fl oz": "Fluid Ounces", gal: "Gallons", "ft³": "Cubic Feet",
+      qt: "Quarts", pt: "Pints", "imp pt": "Pints (Imperial)",
+      cup: "Cups", gi: "Gill", "imp gi": "Gill (Imperial)",
+      tbsp: "Tablespoons", tsp: "Teaspoons",
     },
   },
   {
